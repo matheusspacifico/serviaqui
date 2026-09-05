@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ServiAqui
 
-## Getting Started
+Marketplace de prestadores de serviço. Projeto de faculdade.
 
-First, run the development server:
+Nesta etapa o repositório contém apenas o setup da stack funcionando de ponta a ponta (cadastro, login, recuperação de senha e uma página protegida). Nenhuma feature de negócio ainda.
+
+## Stack
+
+- Next.js (App Router) + TypeScript
+- Tailwind CSS + shadcn/ui
+- Better Auth (e-mail/senha)
+- Drizzle ORM + PostgreSQL (Docker)
+- pnpm
+
+## Pré-requisitos
+
+- Node.js 20 ou superior
+- pnpm (`corepack enable` ou `npm i -g pnpm`)
+- Docker Desktop aberto (com integração WSL, se estiver no Windows)
+
+## Instalação
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variáveis de ambiente
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copie o exemplo e ajuste se necessário:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env
+```
 
-## Learn More
+| Variável | Descrição |
+|---|---|
+| `DATABASE_URL` | Conexão com o Postgres. O valor do exemplo já aponta pro container do Docker. |
+| `BETTER_AUTH_SECRET` | Chave usada pelo Better Auth. Gere uma com `openssl rand -base64 32`. |
+| `BETTER_AUTH_URL` | URL base da aplicação. Em desenvolvimento, `http://localhost:3000`. |
 
-To learn more about Next.js, take a look at the following resources:
+## Banco de dados
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Subir o Postgres:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm db:up
+```
 
-## Deploy on Vercel
+Criar as tabelas no banco a partir de `src/db/schema.ts`:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm db:push
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Abrir o Drizzle Studio pra inspecionar os dados:
+
+```bash
+pnpm db:studio
+```
+
+Derrubar o banco (os dados ficam no volume `pgdata`):
+
+```bash
+pnpm db:down
+```
+
+## Rodando o projeto
+
+```bash
+pnpm dev
+```
+
+Acesse http://localhost:3000.
+
+Outros comandos:
+
+```bash
+pnpm build       # build de produção
+pnpm start       # roda o build
+pnpm lint        # ESLint
+pnpm typecheck   # tsc --noEmit
+pnpm db:generate # gera migrations SQL a partir do schema (não usado por enquanto)
+```
+
+## Testando a autenticação
+
+1. Acesse `/sign-up` e crie uma conta (senha com no mínimo 8 caracteres).
+2. Você será redirecionado pra `/dashboard`, que mostra seu e-mail e um botão **Sair**.
+3. Clique em **Sair** e tente acessar `/dashboard` de novo: você será redirecionado pra `/sign-in`.
+4. Em `/sign-in`, entre com e-mail e senha.
+5. Pra testar a recuperação de senha, acesse `/forgot-password` e informe o e-mail.
+   Ainda não há provedor de e-mail configurado: **o link de redefinição aparece no terminal onde o `pnpm dev` está rodando**.
+6. Abra o link do terminal no navegador, defina a nova senha e entre novamente em `/sign-in`.
