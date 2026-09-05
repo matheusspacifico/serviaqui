@@ -50,7 +50,7 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 
 - Schema do banco só em `src/db/schema.ts`. As tabelas do Better Auth são geradas com `pnpm dlx auth@latest generate --config src/lib/auth.ts --output src/db/schema.ts`; tabelas da aplicação entram no mesmo arquivo, escritas à mão.
 - Usar `pnpm db:push` pra sincronizar o banco. Sem migrations por enquanto.
-- Componentes de UI vêm do shadcn (`pnpm dlx shadcn@latest add <componente>`). O Button do estilo `base-nova` usa a prop `render` (não existe `asChild`).
+- Componentes de UI vêm do shadcn (`pnpm dlx shadcn@latest add <componente>`). O Button do estilo `base-nova` usa a prop `render` (não existe `asChild`); ao renderizar um `Link`, passar também `nativeButton={false}`.
 - Mutações via server actions. Autenticação no browser usa o `authClient`; no servidor, `auth.api.getSession({ headers: await headers() })`.
 - Sem provedor de e-mail ainda: o link de reset de senha é apenas logado no console em `src/lib/auth.ts`.
 - Comentários no código só quando realmente necessário.
