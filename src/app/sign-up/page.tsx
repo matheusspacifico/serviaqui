@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/auth-shell";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -35,44 +35,43 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Criar conta</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="name">Nome</Label>
-              <Input id="name" name="name" required />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" name="email" type="email" required />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                minLength={8}
-                required
-              />
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <Button type="submit" disabled={loading}>
-              {loading ? "Criando..." : "Criar conta"}
-            </Button>
-            <p className="text-sm text-center">
-              Já tem conta?{" "}
-              <Link href="/sign-in" className="underline">
-                Entrar
-              </Link>
-            </p>
-          </form>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthShell
+      title="Criar conta"
+      description="Encontre ou ofereça serviços no seu bairro."
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="name">Nome</Label>
+          <Input id="name" name="name" required />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">E-mail</Label>
+          <Input id="email" name="email" type="email" required />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="password">Senha</Label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            minLength={8}
+            required
+          />
+        </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" size="lg" disabled={loading}>
+          {loading ? "Criando..." : "Criar conta"}
+        </Button>
+        <p className="text-center text-sm text-muted-foreground">
+          Já tem conta?{" "}
+          <Link
+            href="/sign-in"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Entrar
+          </Link>
+        </p>
+      </form>
+    </AuthShell>
   );
 }

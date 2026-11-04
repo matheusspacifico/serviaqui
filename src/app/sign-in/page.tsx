@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/auth-shell";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -34,39 +34,38 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Entrar</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email">E-mail</Label>
-              <Input id="email" name="email" type="email" required />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input id="password" name="password" type="password" required />
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <Button type="submit" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
-            </Button>
-            <div className="flex flex-col gap-1 text-sm text-center">
-              <Link href="/forgot-password" className="underline">
-                Esqueci minha senha
-              </Link>
-              <span>
-                Não tem conta?{" "}
-                <Link href="/sign-up" className="underline">
-                  Criar conta
-                </Link>
-              </span>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthShell title="Entrar" description="Que bom te ver de novo.">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">E-mail</Label>
+          <Input id="email" name="email" type="email" required />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="password">Senha</Label>
+          <Input id="password" name="password" type="password" required />
+        </div>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <Button type="submit" size="lg" disabled={loading}>
+          {loading ? "Entrando..." : "Entrar"}
+        </Button>
+        <div className="flex flex-col gap-1 text-center text-sm text-muted-foreground">
+          <Link
+            href="/forgot-password"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Esqueci minha senha
+          </Link>
+          <span>
+            Não tem conta?{" "}
+            <Link
+              href="/sign-up"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Criar conta
+            </Link>
+          </span>
+        </div>
+      </form>
+    </AuthShell>
   );
 }

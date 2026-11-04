@@ -1,7 +1,7 @@
 # ServiAqui
 
 Marketplace de prestadores de serviço (projeto de faculdade).
-Estado atual: apenas o setup da stack e o fluxo de autenticação; nenhuma feature de negócio ainda.
+Estado atual: stack, autenticação e design system; nenhuma feature de negócio ainda.
 
 ## Stack
 
@@ -20,6 +20,8 @@ src/
     api/auth/[...all]/      route handler do Better Auth
     sign-up, sign-in, forgot-password, reset-password
     dashboard/              rota protegida (server component + getSession)
+  app/design/               vitrine do design system
+  components/               componentes de domínio
   components/ui/            componentes shadcn/ui
   db/
     index.ts                client Drizzle
@@ -31,6 +33,19 @@ src/
 drizzle.config.ts
 docker-compose.yml
 ```
+
+## Design system
+
+- Visual quente: primária terracota, neutros quentes, só tema light (sem `.dark`).
+- Tokens em `src/app/globals.css`. Usar sempre os semânticos (`primary`, `muted-foreground`, `destructive`, `success`, `warning`, `rating`), nunca cores cruas tipo `text-red-600`.
+- Fontes: Geist no corpo (`font-sans`), Bricolage Grotesque nos títulos (`font-heading`, aplicado automático em h1–h3).
+- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`); shadcn fica em `src/components/ui/`.
+- Vitrine em `/design`: todo componente novo reutilizável entra lá.
+- Toasts com `sonner` (`toast.success(...)`); o `Toaster` já está no layout.
+
+## Roadmap
+
+Tasks em `docs/roadmap.md`, ligadas às atividades (ATxx) do cronograma. Marcar `[x]` ao concluir.
 
 ## Comandos
 

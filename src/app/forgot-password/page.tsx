@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/auth-shell";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -33,36 +33,35 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Recuperar senha</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {sent ? (
-            <p className="text-sm">
-              Se o e-mail existir, um link de redefinição foi gerado. Em
-              desenvolvimento, o link aparece no terminal do servidor.
-            </p>
-          ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input id="email" name="email" type="email" required />
-              </div>
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <Button type="submit" disabled={loading}>
-                {loading ? "Enviando..." : "Enviar link"}
-              </Button>
-              <p className="text-sm text-center">
-                <Link href="/sign-in" className="underline">
-                  Voltar para o login
-                </Link>
-              </p>
-            </form>
-          )}
-        </CardContent>
-      </Card>
-    </main>
+    <AuthShell
+      title="Recuperar senha"
+      description="Informe seu e-mail para receber um link de redefinição."
+    >
+      {sent ? (
+        <p className="text-sm">
+          Se o e-mail existir, um link de redefinição foi gerado. Em
+          desenvolvimento, o link aparece no terminal do servidor.
+        </p>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email">E-mail</Label>
+            <Input id="email" name="email" type="email" required />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" size="lg" disabled={loading}>
+            {loading ? "Enviando..." : "Enviar link"}
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            <Link
+              href="/sign-in"
+              className="font-medium text-primary underline-offset-4 hover:underline"
+            >
+              Voltar para o login
+            </Link>
+          </p>
+        </form>
+      )}
+    </AuthShell>
   );
 }

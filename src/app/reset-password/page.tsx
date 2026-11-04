@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthShell } from "@/components/auth-shell";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -41,7 +41,10 @@ function ResetPasswordForm() {
     return (
       <p className="text-sm">
         Link inválido ou expirado.{" "}
-        <Link href="/forgot-password" className="underline">
+        <Link
+          href="/forgot-password"
+          className="font-medium text-primary underline-offset-4 hover:underline"
+        >
           Solicitar um novo link
         </Link>
       </p>
@@ -60,8 +63,8 @@ function ResetPasswordForm() {
           required
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <Button type="submit" disabled={loading}>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <Button type="submit" size="lg" disabled={loading}>
         {loading ? "Salvando..." : "Redefinir senha"}
       </Button>
     </form>
@@ -70,17 +73,13 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Redefinir senha</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Suspense>
-            <ResetPasswordForm />
-          </Suspense>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthShell
+      title="Redefinir senha"
+      description="Escolha uma nova senha para sua conta."
+    >
+      <Suspense>
+        <ResetPasswordForm />
+      </Suspense>
+    </AuthShell>
   );
 }
