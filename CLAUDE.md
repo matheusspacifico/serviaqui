@@ -55,6 +55,11 @@ docker-compose.yml
 - Vitrine em `/design`: todo componente novo reutilizável entra lá.
 - Toasts com `sonner` (`toast.success(...)`); o `Toaster` já está no layout.
 
+## Testes
+
+- Unitários só para módulos puros, com `node:test` (`pnpm test`). Arquivo novo de teste entra no script `test` do `package.json`.
+- Roteiros manuais em `docs/testes/` (`autenticacao.md`, `perfil-prestador.md`), com registro de execução no fim.
+
 ## Roadmap
 
 Tasks em `docs/roadmap.md`, ligadas às atividades (ATxx) do cronograma. Marcar `[x]` ao concluir.
@@ -66,6 +71,7 @@ pnpm dev          # servidor de desenvolvimento
 pnpm build        # build de produção
 pnpm lint         # ESLint
 pnpm typecheck    # tsc --noEmit
+pnpm test         # testes unitários (node:test via tsx) de src/lib/provider-validation.ts
 pnpm db:up        # sobe o Postgres (docker compose up -d)
 pnpm db:down      # derruba o Postgres
 pnpm db:push      # aplica o schema no banco

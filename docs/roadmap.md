@@ -29,7 +29,7 @@ Ordem segue as dependências do cronograma.
 - [x] T2.4 Server action de criar/editar perfil — AT02
 - [x] T2.5 Tela de cadastro do prestador (decidir formato: formulário em etapas ou chat) — AT02
 - [x] T2.6 Página pública do perfil `/prestador/[id]` — AT02
-- [ ] T2.7 Teste do cadastro — AT03
+- [x] T2.7 Teste do cadastro — AT03
 
 ## Fase 3 — Busca geolocalizada (pacote 2.1)
 
