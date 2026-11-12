@@ -52,6 +52,13 @@ export default async function DashboardPage() {
                 >
                   Editar perfil
                 </Button>
+                <Button
+                  variant="outline"
+                  nativeButton={false}
+                  render={<Link href={`/prestador/${profile.id}`} />}
+                >
+                  Ver perfil público
+                </Button>
               </div>
             </CardContent>
           </Card>

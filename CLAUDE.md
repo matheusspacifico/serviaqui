@@ -1,7 +1,7 @@
 # ServiAqui
 
 Marketplace de prestadores de serviço (projeto de faculdade).
-Estado atual: stack, autenticação, design system e perfil do prestador (cadastro/edição em `/dashboard/prestador`). Busca, contato e avaliação ainda não existem.
+Estado atual: stack, autenticação, design system e perfil do prestador (cadastro/edição em `/dashboard/prestador`, página pública em `/prestador/[id]`). Busca, contato e avaliação ainda não existem.
 
 ## Stack
 
@@ -22,6 +22,7 @@ src/
     reset-password
     dashboard/              rota protegida (requireSession)
       prestador/            criar/editar perfil: page.tsx, provider-profile-form.tsx, actions.ts
+    prestador/[id]/         página pública do perfil (sem sessão; nunca consulta o telefone)
   app/design/               vitrine do design system
   components/               componentes de domínio
   components/ui/            componentes shadcn/ui
@@ -83,6 +84,7 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - Telas só para deslogado (`/sign-in`, `/sign-up`, `/forgot-password`) chamam `redirectIfAuthenticated()` na página, não no proxy.
 - Prestador é qualquer conta com uma linha em `provider_profile` (1:1 com `user`); não há coluna de papel. O dono do perfil é sempre o usuário da sessão, nunca um id vindo do cliente.
 - Regras e mensagens do perfil ficam só em `src/lib/provider-validation.ts`; o formulário e a server action chamam o mesmo `parseProviderProfile`.
+- O telefone do prestador não aparece em página pública: `getPublicProviderProfile` não seleciona `phone`. O contato entra na Fase 4, por botões que registram o evento.
 - Erros do Better Auth são exibidos via `authErrorMessage` (`src/lib/auth-errors.ts`), nunca `error.message`.
 - Sem provedor de e-mail ainda: o link de reset de senha é apenas logado no console em `src/lib/auth.ts`.
 - Comentários no código só quando realmente necessário.
