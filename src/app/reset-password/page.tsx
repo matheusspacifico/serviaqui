@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { PASSWORD_HINT, validateNewPassword } from "@/lib/auth-validation";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth-shell";
@@ -42,7 +43,7 @@ function ResetPasswordForm() {
     setLoading(false);
 
     if (error) {
-      setError(error.message ?? "Não foi possível redefinir a senha.");
+      setError(authErrorMessage(error, "Não foi possível redefinir a senha."));
       return;
     }
     router.push("/sign-in");

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { validateCurrentPassword, validateEmail } from "@/lib/auth-validation";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth-shell";
@@ -51,7 +52,7 @@ export default function SignInPage() {
     setLoading(false);
 
     if (error) {
-      setError(error.message ?? "E-mail ou senha inválidos.");
+      setError(authErrorMessage(error, "Não foi possível entrar."));
       return;
     }
     router.push("/dashboard");

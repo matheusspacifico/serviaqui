@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
+import { authErrorMessage } from "@/lib/auth-errors";
 import { validateEmail } from "@/lib/auth-validation";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth-shell";
@@ -35,7 +36,7 @@ export default function ForgotPasswordPage() {
     setLoading(false);
 
     if (error) {
-      setError(error.message ?? "Não foi possível enviar o link.");
+      setError(authErrorMessage(error, "Não foi possível enviar o link."));
       return;
     }
     setSent(true);

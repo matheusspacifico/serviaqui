@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { authErrorMessage, isEmailTaken } from "@/lib/auth-errors";
 import {
   PASSWORD_HINT,
   validateEmail,
@@ -18,6 +19,25 @@ type Field = "name" | "email" | "password";
 type FieldErrors = Partial<Record<Field, React.ReactNode>>;
 
 const FIELDS: Field[] = ["name", "email", "password"];
+
+const LINK_CLASS =
+  "font-medium text-primary underline-offset-4 hover:underline";
+
+function EmailTakenMessage() {
+  return (
+    <>
+      Este e-mail já está cadastrado.{" "}
+      <Link href="/sign-in" className={LINK_CLASS}>
+        Entrar
+      </Link>{" "}
+      ou{" "}
+      <Link href="/forgot-password" className={LINK_CLASS}>
+        recuperar a senha
+      </Link>
+      .
+    </>
+  );
+}
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -58,7 +78,12 @@ export default function SignUpPage() {
     setLoading(false);
 
     if (error) {
-      setError(error.message ?? "Não foi possível criar a conta.");
+      if (isEmailTaken(error)) {
+        setFieldErrors({ email: <EmailTakenMessage /> });
+        formElement.querySelector<HTMLInputElement>('[name="email"]')?.focus();
+        return;
+      }
+      setError(authErrorMessage(error, "Não foi possível criar a conta."));
       return;
     }
     router.push("/dashboard");
@@ -104,10 +129,7 @@ export default function SignUpPage() {
         </Button>
         <p className="text-center text-sm text-muted-foreground">
           Já tem conta?{" "}
-          <Link
-            href="/sign-in"
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
+          <Link href="/sign-in" className={LINK_CLASS}>
             Entrar
           </Link>
         </p>
