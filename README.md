@@ -84,10 +84,10 @@ pnpm db:generate # gera migrations SQL a partir do schema (não usado por enquan
 
 ## Testando a autenticação
 
-1. Acesse `/sign-up` e crie uma conta (senha com no mínimo 8 caracteres).
-2. Você será redirecionado pra `/dashboard`, que mostra seu e-mail e um botão **Sair**.
-3. Clique em **Sair** e tente acessar `/dashboard` de novo: você será redirecionado pra `/sign-in`.
-4. Em `/sign-in`, entre com e-mail e senha.
-5. Pra testar a recuperação de senha, acesse `/forgot-password` e informe o e-mail.
-   Ainda não há provedor de e-mail configurado: **o link de redefinição aparece no terminal onde o `pnpm dev` está rodando**.
-6. Abra o link do terminal no navegador, defina a nova senha e entre novamente em `/sign-in`.
+O roteiro de teste de cadastro, login, rotas e recuperação de senha está em [`docs/testes/autenticacao.md`](docs/testes/autenticacao.md).
+
+Ainda não há provedor de e-mail configurado: **o link de redefinição de senha aparece no terminal onde o `pnpm dev` está rodando**.
+
+## Segurança
+
+Como as senhas são armazenadas: [`docs/seguranca-senhas.md`](docs/seguranca-senhas.md).

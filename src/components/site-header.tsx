@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { getSession } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { SignOutButton } from "@/components/sign-out-button";
 
 export async function SiteHeader() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
 
   return (
     <header className="border-b bg-background/80 backdrop-blur">

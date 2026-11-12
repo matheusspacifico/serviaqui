@@ -18,8 +18,9 @@ Estado atual: stack, autenticação e design system; nenhuma feature de negócio
 src/
   app/                      rotas (App Router)
     api/auth/[...all]/      route handler do Better Auth
-    sign-up, sign-in, forgot-password, reset-password
-    dashboard/              rota protegida (server component + getSession)
+    sign-up, sign-in, forgot-password   page.tsx (server) + *-form.tsx (client)
+    reset-password
+    dashboard/              rota protegida (requireSession)
   app/design/               vitrine do design system
   components/               componentes de domínio
   components/ui/            componentes shadcn/ui
@@ -29,6 +30,11 @@ src/
   lib/
     auth.ts                 config do Better Auth (server)
     auth-client.ts          client do Better Auth (browser)
+    auth-validation.ts      validadores e limites de senha (cliente e servidor)
+    auth-errors.ts          tradução dos erros do Better Auth por código
+    session.ts              getSession, requireSession, redirectIfAuthenticated
+    redirect.ts             safeRedirectPath (redirectTo seguro)
+  proxy.ts                  checagem otimista de cookie nas rotas logadas
     utils.ts                helper cn()
 drizzle.config.ts
 docker-compose.yml
@@ -39,7 +45,7 @@ docker-compose.yml
 - Visual quente: primária terracota, neutros quentes, só tema light (sem `.dark`).
 - Tokens em `src/app/globals.css`. Usar sempre os semânticos (`primary`, `muted-foreground`, `destructive`, `success`, `warning`, `rating`), nunca cores cruas tipo `text-red-600`.
 - Fontes: Geist no corpo (`font-sans`), Bricolage Grotesque nos títulos (`font-heading`, aplicado automático em h1–h3).
-- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`); shadcn fica em `src/components/ui/`.
+- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`); shadcn fica em `src/components/ui/`.
 - Vitrine em `/design`: todo componente novo reutilizável entra lá.
 - Toasts com `sonner` (`toast.success(...)`); o `Toaster` já está no layout.
 
@@ -66,6 +72,19 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - Schema do banco só em `src/db/schema.ts`. As tabelas do Better Auth são geradas com `pnpm dlx auth@latest generate --config src/lib/auth.ts --output src/db/schema.ts`; tabelas da aplicação entram no mesmo arquivo, escritas à mão.
 - Usar `pnpm db:push` pra sincronizar o banco. Sem migrations por enquanto.
 - Componentes de UI vêm do shadcn (`pnpm dlx shadcn@latest add <componente>`). O Button do estilo `base-nova` usa a prop `render` (não existe `asChild`); ao renderizar um `Link`, passar também `nativeButton={false}`.
-- Mutações via server actions. Autenticação no browser usa o `authClient`; no servidor, `auth.api.getSession({ headers: await headers() })`.
+- Mutações via server actions. Autenticação no browser usa o `authClient`; no servidor, a sessão é lida só por `src/lib/session.ts` (`getSession`, `requireSession`, `redirectIfAuthenticated`), nunca por `auth.api.getSession` direto.
+- Toda rota logada nova entra no `matcher` de `src/proxy.ts` **e** chama `requireSession()` na página ou na server action. O proxy só confere se o cookie existe; sozinho não é proteção.
+- Telas só para deslogado (`/sign-in`, `/sign-up`, `/forgot-password`) chamam `redirectIfAuthenticated()` na página, não no proxy.
+- Erros do Better Auth são exibidos via `authErrorMessage` (`src/lib/auth-errors.ts`), nunca `error.message`.
 - Sem provedor de e-mail ainda: o link de reset de senha é apenas logado no console em `src/lib/auth.ts`.
 - Comentários no código só quando realmente necessário.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

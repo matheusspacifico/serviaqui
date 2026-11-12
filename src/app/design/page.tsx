@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Logo } from "@/components/logo";
+import { FormField } from "@/components/form-field";
 import { RatingStars } from "@/components/rating-stars";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -110,13 +111,23 @@ export default function DesignPage() {
             <Label htmlFor="demo-name">Nome</Label>
             <Input id="demo-name" placeholder="Maria Silva" />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="demo-invalid">E-mail (inválido)</Label>
-            <Input id="demo-invalid" aria-invalid defaultValue="maria@" />
-            <p className="text-sm text-destructive">
-              Informe um e-mail válido.
-            </p>
-          </div>
+          <FormField
+            label="FormField"
+            name="demo-field"
+            placeholder="maria@exemplo.com"
+          />
+          <FormField
+            label="FormField com dica"
+            name="demo-field-hint"
+            type="password"
+            hint="Mínimo de 8 caracteres."
+          />
+          <FormField
+            label="FormField com erro"
+            name="demo-field-error"
+            defaultValue="maria@"
+            error="Digite um e-mail válido, como nome@exemplo.com."
+          />
           <div className="flex flex-col gap-2">
             <Label htmlFor="demo-bio">Descrição</Label>
             <Textarea id="demo-bio" placeholder="Conte sobre seu trabalho" />

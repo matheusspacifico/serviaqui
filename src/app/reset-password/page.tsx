@@ -4,34 +4,46 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { authErrorMessage } from "@/lib/auth-errors";
+import { PASSWORD_HINT, validateNewPassword } from "@/lib/auth-validation";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth-shell";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/form-field";
 
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const invalidToken = searchParams.get("error") === "INVALID_TOKEN";
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!token) return;
-    setError(null);
-    setLoading(true);
+    const formElement = event.currentTarget;
+    const password = String(new FormData(formElement).get("password") ?? "");
 
-    const form = new FormData(event.currentTarget);
+    const invalid = validateNewPassword(password);
+    setPasswordError(invalid);
+    setError(null);
+    if (invalid) {
+      formElement
+        .querySelector<HTMLInputElement>('[name="password"]')
+        ?.focus();
+      return;
+    }
+
+    setLoading(true);
     const { error } = await authClient.resetPassword({
-      newPassword: String(form.get("password")),
+      newPassword: password,
       token,
     });
-
     setLoading(false);
+
     if (error) {
-      setError(error.message ?? "Não foi possível redefinir a senha.");
+      setError(authErrorMessage(error, "Não foi possível redefinir a senha."));
       return;
     }
     router.push("/sign-in");
@@ -52,18 +64,21 @@ function ResetPasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="password">Nova senha</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          minLength={8}
-          required
-        />
-      </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+      <FormField
+        label="Nova senha"
+        name="password"
+        type="password"
+        autoComplete="new-password"
+        hint={PASSWORD_HINT}
+        error={passwordError}
+        onChange={() => setPasswordError(null)}
+      />
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
       <Button type="submit" size="lg" disabled={loading}>
         {loading ? "Salvando..." : "Redefinir senha"}
       </Button>
