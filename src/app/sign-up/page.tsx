@@ -4,29 +4,59 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import {
+  PASSWORD_HINT,
+  validateEmail,
+  validateName,
+  validateNewPassword,
+} from "@/lib/auth-validation";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth-shell";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/form-field";
+
+type Field = "name" | "email" | "password";
+type FieldErrors = Partial<Record<Field, React.ReactNode>>;
+
+const FIELDS: Field[] = ["name", "email", "password"];
 
 export default function SignUpPage() {
   const router = useRouter();
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  function clearFieldError(field: Field) {
+    setFieldErrors((current) => ({ ...current, [field]: undefined }));
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const name = String(form.get("name") ?? "").trim();
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+
+    const errors: FieldErrors = {
+      name: validateName(name) ?? undefined,
+      email: validateEmail(email) ?? undefined,
+      password: validateNewPassword(password) ?? undefined,
+    };
+    setFieldErrors(errors);
     setError(null);
+
+    const firstInvalid = FIELDS.find((field) => errors[field]);
+    if (firstInvalid) {
+      formElement
+        .querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)
+        ?.focus();
+      return;
+    }
+
     setLoading(true);
-
-    const form = new FormData(event.currentTarget);
-    const { error } = await authClient.signUp.email({
-      name: String(form.get("name")),
-      email: String(form.get("email")),
-      password: String(form.get("password")),
-    });
-
+    const { error } = await authClient.signUp.email({ name, email, password });
     setLoading(false);
+
     if (error) {
       setError(error.message ?? "Não foi possível criar a conta.");
       return;
@@ -39,26 +69,36 @@ export default function SignUpPage() {
       title="Criar conta"
       description="Encontre ou ofereça serviços no seu bairro."
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="name">Nome</Label>
-          <Input id="name" name="name" required />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-mail</Label>
-          <Input id="email" name="email" type="email" required />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Senha</Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            minLength={8}
-            required
-          />
-        </div>
-        {error && <p className="text-sm text-destructive">{error}</p>}
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        <FormField
+          label="Nome"
+          name="name"
+          autoComplete="name"
+          error={fieldErrors.name}
+          onChange={() => clearFieldError("name")}
+        />
+        <FormField
+          label="E-mail"
+          name="email"
+          type="email"
+          autoComplete="email"
+          error={fieldErrors.email}
+          onChange={() => clearFieldError("email")}
+        />
+        <FormField
+          label="Senha"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          hint={PASSWORD_HINT}
+          error={fieldErrors.password}
+          onChange={() => clearFieldError("password")}
+        />
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <Button type="submit" size="lg" disabled={loading}>
           {loading ? "Criando..." : "Criar conta"}
         </Button>

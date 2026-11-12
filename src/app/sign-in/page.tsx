@@ -4,28 +4,52 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { validateCurrentPassword, validateEmail } from "@/lib/auth-validation";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth-shell";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/form-field";
+
+type Field = "email" | "password";
+type FieldErrors = Partial<Record<Field, React.ReactNode>>;
+
+const FIELDS: Field[] = ["email", "password"];
 
 export default function SignInPage() {
   const router = useRouter();
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  function clearFieldError(field: Field) {
+    setFieldErrors((current) => ({ ...current, [field]: undefined }));
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+
+    const errors: FieldErrors = {
+      email: validateEmail(email) ?? undefined,
+      password: validateCurrentPassword(password) ?? undefined,
+    };
+    setFieldErrors(errors);
     setError(null);
+
+    const firstInvalid = FIELDS.find((field) => errors[field]);
+    if (firstInvalid) {
+      formElement
+        .querySelector<HTMLInputElement>(`[name="${firstInvalid}"]`)
+        ?.focus();
+      return;
+    }
+
     setLoading(true);
-
-    const form = new FormData(event.currentTarget);
-    const { error } = await authClient.signIn.email({
-      email: String(form.get("email")),
-      password: String(form.get("password")),
-    });
-
+    const { error } = await authClient.signIn.email({ email, password });
     setLoading(false);
+
     if (error) {
       setError(error.message ?? "E-mail ou senha inválidos.");
       return;
@@ -35,16 +59,28 @@ export default function SignInPage() {
 
   return (
     <AuthShell title="Entrar" description="Que bom te ver de novo.">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email">E-mail</Label>
-          <Input id="email" name="email" type="email" required />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="password">Senha</Label>
-          <Input id="password" name="password" type="password" required />
-        </div>
-        {error && <p className="text-sm text-destructive">{error}</p>}
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        <FormField
+          label="E-mail"
+          name="email"
+          type="email"
+          autoComplete="email"
+          error={fieldErrors.email}
+          onChange={() => clearFieldError("email")}
+        />
+        <FormField
+          label="Senha"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          error={fieldErrors.password}
+          onChange={() => clearFieldError("password")}
+        />
+        {error && (
+          <p role="alert" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
         <Button type="submit" size="lg" disabled={loading}>
           {loading ? "Entrando..." : "Entrar"}
         </Button>

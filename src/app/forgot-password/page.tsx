@@ -3,28 +3,37 @@
 import { useState } from "react";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
+import { validateEmail } from "@/lib/auth-validation";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth-shell";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/form-field";
 
 export default function ForgotPasswordPage() {
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-    setLoading(true);
+    const formElement = event.currentTarget;
+    const email = String(new FormData(formElement).get("email") ?? "").trim();
 
-    const form = new FormData(event.currentTarget);
+    const invalid = validateEmail(email);
+    setEmailError(invalid);
+    setError(null);
+    if (invalid) {
+      formElement.querySelector<HTMLInputElement>('[name="email"]')?.focus();
+      return;
+    }
+
+    setLoading(true);
     const { error } = await authClient.requestPasswordReset({
-      email: String(form.get("email")),
+      email,
       redirectTo: "/reset-password",
     });
-
     setLoading(false);
+
     if (error) {
       setError(error.message ?? "Não foi possível enviar o link.");
       return;
@@ -43,12 +52,24 @@ export default function ForgotPasswordPage() {
           desenvolvimento, o link aparece no terminal do servidor.
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email">E-mail</Label>
-            <Input id="email" name="email" type="email" required />
-          </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex flex-col gap-4"
+        >
+          <FormField
+            label="E-mail"
+            name="email"
+            type="email"
+            autoComplete="email"
+            error={emailError}
+            onChange={() => setEmailError(null)}
+          />
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
           <Button type="submit" size="lg" disabled={loading}>
             {loading ? "Enviando..." : "Enviar link"}
           </Button>
