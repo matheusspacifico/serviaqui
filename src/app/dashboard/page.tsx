@@ -1,6 +1,4 @@
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/session";
 import { SiteHeader } from "@/components/site-header";
 import {
   Card,
@@ -10,11 +8,7 @@ import {
 } from "@/components/ui/card";
 
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  if (!session) {
-    redirect("/sign-in");
-  }
+  const session = await requireSession("/dashboard");
 
   return (
     <>

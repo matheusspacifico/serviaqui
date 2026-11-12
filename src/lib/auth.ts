@@ -11,6 +11,7 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: PASSWORD_MIN,
     maxPasswordLength: PASSWORD_MAX,
+    revokeSessionsOnPasswordReset: true,
     sendResetPassword: async ({ user, url }) => {
       console.log(`[auth] Reset de senha para ${user.email}: ${url}`);
     },
