@@ -26,7 +26,7 @@ Ordem segue as dependências do cronograma.
 - [x] T2.1 Definir campos: nome, telefone/WhatsApp, serviços, bairros, valor/hora, descrição — AT01
 - [x] T2.2 Tabelas `provider_profile`, `service_category`, `provider_service`, `provider_area` — AT02
 - [x] T2.3 Seed de categorias de serviço — AT02
-- [ ] T2.4 Server action de criar/editar perfil — AT02
+- [x] T2.4 Server action de criar/editar perfil — AT02
 - [ ] T2.5 Tela de cadastro do prestador (decidir formato: formulário em etapas ou chat) — AT02
 - [ ] T2.6 Página pública do perfil `/prestador/[id]` — AT02
 - [ ] T2.7 Teste do cadastro — AT03
