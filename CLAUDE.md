@@ -27,6 +27,7 @@ src/
   db/
     index.ts                client Drizzle
     schema.ts               schema do banco (único lugar)
+    seed.ts                 seed das categorias de serviço (pnpm db:seed)
   lib/
     auth.ts                 config do Better Auth (server)
     auth-client.ts          client do Better Auth (browser)
@@ -63,6 +64,7 @@ pnpm typecheck    # tsc --noEmit
 pnpm db:up        # sobe o Postgres (docker compose up -d)
 pnpm db:down      # derruba o Postgres
 pnpm db:push      # aplica o schema no banco
+pnpm db:seed      # grava as categorias de serviço (idempotente; rodar depois do db:push)
 pnpm db:studio    # Drizzle Studio
 pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 ```
@@ -70,7 +72,7 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 ## Convenções
 
 - Schema do banco só em `src/db/schema.ts`. As tabelas do Better Auth são geradas com `pnpm dlx auth@latest generate --config src/lib/auth.ts --output src/db/schema.ts`; tabelas da aplicação entram no mesmo arquivo, escritas à mão.
-- Usar `pnpm db:push` pra sincronizar o banco. Sem migrations por enquanto.
+- Usar `pnpm db:push` pra sincronizar o banco e, em seguida, `pnpm db:seed`. Sem migrations por enquanto.
 - Componentes de UI vêm do shadcn (`pnpm dlx shadcn@latest add <componente>`). O Button do estilo `base-nova` usa a prop `render` (não existe `asChild`); ao renderizar um `Link`, passar também `nativeButton={false}`.
 - Mutações via server actions. Autenticação no browser usa o `authClient`; no servidor, a sessão é lida só por `src/lib/session.ts` (`getSession`, `requireSession`, `redirectIfAuthenticated`), nunca por `auth.api.getSession` direto.
 - Toda rota logada nova entra no `matcher` de `src/proxy.ts` **e** chama `requireSession()` na página ou na server action. O proxy só confere se o cookie existe; sozinho não é proteção.

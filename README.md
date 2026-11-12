@@ -52,6 +52,12 @@ Criar as tabelas no banco a partir de `src/db/schema.ts`:
 pnpm db:push
 ```
 
+Gravar as categorias de serviço (pode rodar mais de uma vez; não duplica):
+
+```bash
+pnpm db:seed
+```
+
 Abrir o Drizzle Studio pra inspecionar os dados:
 
 ```bash
