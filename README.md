@@ -91,3 +91,7 @@ pnpm db:generate # gera migrations SQL a partir do schema (não usado por enquan
 5. Pra testar a recuperação de senha, acesse `/forgot-password` e informe o e-mail.
    Ainda não há provedor de e-mail configurado: **o link de redefinição aparece no terminal onde o `pnpm dev` está rodando**.
 6. Abra o link do terminal no navegador, defina a nova senha e entre novamente em `/sign-in`.
+
+## Segurança
+
+Como as senhas são armazenadas: [`docs/seguranca-senhas.md`](docs/seguranca-senhas.md).

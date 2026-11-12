@@ -17,7 +17,7 @@ Ordem segue as dependências do cronograma.
 
 - [x] T1.1 Validação client-side (formato de e-mail, senha mínima) com mensagens em pt-BR — AT05
 - [x] T1.2 Mensagem clara para e-mail já cadastrado — AT05
-- [ ] T1.3 Registrar que o hash do Better Auth (scrypt) atende ao requisito — AT06
+- [x] T1.3 Registrar que o hash do Better Auth (scrypt) atende ao requisito — AT06
 - [x] T1.4 Proteger rotas logadas e redirecionar usuário logado para fora das telas de auth — AT07
 - [ ] T1.5 Roteiro de teste de cadastro, login e recuperação de senha — AT09
 
