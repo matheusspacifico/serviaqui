@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Logo } from "@/components/logo";
-import { FormField } from "@/components/form-field";
+import { Field, FormField } from "@/components/form-field";
 import { RatingStars } from "@/components/rating-stars";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,13 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { RatingInputDemo, SelectDemo, ToastDemo } from "./demos";
+import {
+  ChoiceChipsDemo,
+  RatingInputDemo,
+  SelectDemo,
+  TagInputDemo,
+  ToastDemo,
+} from "./demos";
 
 export const metadata: Metadata = { title: "Design system · ServiAqui" };
 
@@ -128,11 +134,33 @@ export default function DesignPage() {
             defaultValue="maria@"
             error="Digite um e-mail válido, como nome@exemplo.com."
           />
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="demo-bio">Descrição</Label>
-            <Textarea id="demo-bio" placeholder="Conte sobre seu trabalho" />
-          </div>
+          <Field
+            label="Field com textarea"
+            htmlFor="demo-bio"
+            hint="Opcional. Até 500 caracteres."
+          >
+            <Textarea
+              id="demo-bio"
+              placeholder="Conte sobre seu trabalho"
+              aria-describedby="demo-bio-hint"
+            />
+          </Field>
           <SelectDemo />
+          <Field
+            as="fieldset"
+            label="ChoiceChips (máximo de 2)"
+            htmlFor="demo-services"
+            hint="Ao atingir o máximo, as outras opções ficam desabilitadas."
+          >
+            <ChoiceChipsDemo />
+          </Field>
+          <Field
+            label="TagInput"
+            htmlFor="demo-tags"
+            hint="Digite e aperte Enter. Até 5."
+          >
+            <TagInputDemo />
+          </Field>
         </div>
       </Section>
 

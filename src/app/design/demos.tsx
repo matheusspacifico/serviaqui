@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { ChoiceChips } from "@/components/choice-chips";
 import { RatingStars } from "@/components/rating-stars";
+import { TagInput } from "@/components/tag-input";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -52,5 +54,40 @@ export function ToastDemo() {
         Toast erro
       </Button>
     </div>
+  );
+}
+
+const CHOICE_OPTIONS = [
+  { value: "eletricista", label: "Eletricista" },
+  { value: "encanador", label: "Encanador" },
+  { value: "diarista", label: "Diarista" },
+  { value: "pintor", label: "Pintor" },
+];
+
+export function ChoiceChipsDemo() {
+  const [value, setValue] = useState(["eletricista"]);
+  return (
+    <ChoiceChips
+      name="demo-services"
+      options={CHOICE_OPTIONS}
+      value={value}
+      onChange={setValue}
+      max={2}
+    />
+  );
+}
+
+export function TagInputDemo() {
+  const [value, setValue] = useState(["Centro", "Pinheiros"]);
+  return (
+    <TagInput
+      id="demo-tags"
+      placeholder="Ex.: Vila Mariana"
+      emptyText="Nenhum bairro adicionado."
+      value={value}
+      onChange={setValue}
+      max={5}
+      aria-describedby="demo-tags-hint"
+    />
   );
 }

@@ -55,6 +55,12 @@ export default function Home() {
               Já tenho conta
             </Button>
           </div>
+          <Link
+            href="/sign-up?redirectTo=%2Fdashboard%2Fprestador"
+            className="font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Quero oferecer serviços
+          </Link>
         </section>
         <section className="border-t bg-muted/50">
           <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-16 sm:grid-cols-3">

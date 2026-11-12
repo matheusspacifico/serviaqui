@@ -1,7 +1,7 @@
 # ServiAqui
 
 Marketplace de prestadores de serviço (projeto de faculdade).
-Estado atual: stack, autenticação e design system; nenhuma feature de negócio ainda.
+Estado atual: stack, autenticação, design system e perfil do prestador (cadastro/edição em `/dashboard/prestador`). Busca, contato e avaliação ainda não existem.
 
 ## Stack
 
@@ -21,6 +21,7 @@ src/
     sign-up, sign-in, forgot-password   page.tsx (server) + *-form.tsx (client)
     reset-password
     dashboard/              rota protegida (requireSession)
+      prestador/            criar/editar perfil: page.tsx, provider-profile-form.tsx, actions.ts
   app/design/               vitrine do design system
   components/               componentes de domínio
   components/ui/            componentes shadcn/ui
@@ -35,6 +36,8 @@ src/
     auth-errors.ts          tradução dos erros do Better Auth por código
     session.ts              getSession, requireSession, redirectIfAuthenticated
     redirect.ts             safeRedirectPath (redirectTo seguro)
+    provider-validation.ts  campos, limites e validadores do perfil (cliente e servidor)
+    provider-queries.ts     leitura de categorias e perfis (só servidor)
   proxy.ts                  checagem otimista de cookie nas rotas logadas
     utils.ts                helper cn()
 drizzle.config.ts
@@ -46,7 +49,8 @@ docker-compose.yml
 - Visual quente: primária terracota, neutros quentes, só tema light (sem `.dark`).
 - Tokens em `src/app/globals.css`. Usar sempre os semânticos (`primary`, `muted-foreground`, `destructive`, `success`, `warning`, `rating`), nunca cores cruas tipo `text-red-600`.
 - Fontes: Geist no corpo (`font-sans`), Bricolage Grotesque nos títulos (`font-heading`, aplicado automático em h1–h3).
-- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`); shadcn fica em `src/components/ui/`.
+- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`, `choice-chips`, `tag-input`); shadcn fica em `src/components/ui/`.
+- Formulários: `FormField` para um `Input` com rótulo/dica/erro; `Field` (mesmo arquivo) para qualquer outro controle (textarea, select) e, com `as="fieldset"`, para grupos. `ChoiceChips` é a seleção múltipla em etiquetas; `TagInput` é a lista de etiquetas digitadas.
 - Vitrine em `/design`: todo componente novo reutilizável entra lá.
 - Toasts com `sonner` (`toast.success(...)`); o `Toaster` já está no layout.
 
@@ -77,6 +81,8 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - Mutações via server actions. Autenticação no browser usa o `authClient`; no servidor, a sessão é lida só por `src/lib/session.ts` (`getSession`, `requireSession`, `redirectIfAuthenticated`), nunca por `auth.api.getSession` direto.
 - Toda rota logada nova entra no `matcher` de `src/proxy.ts` **e** chama `requireSession()` na página ou na server action. O proxy só confere se o cookie existe; sozinho não é proteção.
 - Telas só para deslogado (`/sign-in`, `/sign-up`, `/forgot-password`) chamam `redirectIfAuthenticated()` na página, não no proxy.
+- Prestador é qualquer conta com uma linha em `provider_profile` (1:1 com `user`); não há coluna de papel. O dono do perfil é sempre o usuário da sessão, nunca um id vindo do cliente.
+- Regras e mensagens do perfil ficam só em `src/lib/provider-validation.ts`; o formulário e a server action chamam o mesmo `parseProviderProfile`.
 - Erros do Better Auth são exibidos via `authErrorMessage` (`src/lib/auth-errors.ts`), nunca `error.message`.
 - Sem provedor de e-mail ainda: o link de reset de senha é apenas logado no console em `src/lib/auth.ts`.
 - Comentários no código só quando realmente necessário.
