@@ -1,4 +1,5 @@
 import { and, asc, countDistinct, eq, inArray, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import {
   geoPlace,
@@ -13,6 +14,7 @@ import {
   haversineKm,
   type Coordinates,
 } from "@/lib/geo";
+import { RATING_PRIOR_MEAN, RATING_PRIOR_WEIGHT } from "@/lib/ranking";
 import {
   SEARCH_RESULT_LIMIT,
   type ProviderSearchItem,
@@ -21,6 +23,21 @@ import {
 } from "@/lib/search-validation";
 
 type ProviderRow = Omit<ProviderSearchItem, "services">;
+
+const RATED_COUNT = sql`(case when p.rating_average is null then 0 else p.rating_count end)`;
+const ADJUSTED_RATING = sql`(
+  (${RATING_PRIOR_WEIGHT}::double precision * ${RATING_PRIOR_MEAN}::double precision
+    + coalesce(p.rating_average, 0) * ${RATED_COUNT})
+  / (${RATING_PRIOR_WEIGHT}::double precision + ${RATED_COUNT})
+)`;
+
+function rating(average: number | null, count: number) {
+  const rated = average !== null && count > 0;
+  return {
+    ratingAverage: rated ? Number(average) : null,
+    ratingCount: rated ? count : 0,
+  };
+}
 type SearchPage = { providers: ProviderSearchItem[]; truncated: boolean };
 
 async function withServices(rows: ProviderRow[]): Promise<SearchPage> {
@@ -69,7 +86,7 @@ export async function findProvidersByDistance(params: {
   radiusKm: number;
   sort: SearchSort;
 }): Promise<SearchPage> {
-  const { category, coords, radiusKm } = params;
+  const { category, coords, radiusKm, sort } = params;
   const box = boundingBox(coords, radiusKm);
 
   const distance = sql`2 * ${EARTH_RADIUS_KM}::double precision * asin(least(1, sqrt(
@@ -78,10 +95,17 @@ export async function findProvidersByDistance(params: {
     power(sin(radians(gp.lng - ${coords.lng}::double precision) / 2), 2)
   )))`;
 
+  const orderBy =
+    sort === "avaliacao"
+      ? sql`round(${ADJUSTED_RATING}::numeric, 2) desc, n.distance_km asc, p.display_name asc`
+      : sql`round(n.distance_km::numeric, 1) asc, ${ADJUSTED_RATING} desc, p.display_name asc`;
+
   const rows = await db.execute<{
     id: string;
     display_name: string;
     hourly_rate_cents: number | null;
+    rating_average: number | null;
+    rating_count: number;
     neighborhood: string;
     distance_km: number;
   }>(sql`
@@ -103,12 +127,14 @@ export async function findProvidersByDistance(params: {
       p.id,
       p.display_name,
       p.hourly_rate_cents,
+      p.rating_average,
+      p.rating_count,
       n.neighborhood,
       n.distance_km
     from nearest n
     inner join provider_profile p on p.id = n.provider_id
     where n.distance_km <= ${radiusKm}::double precision
-    order by n.distance_km asc, p.display_name asc
+    order by ${orderBy}
     limit ${SEARCH_RESULT_LIMIT + 1}
   `);
 
@@ -119,8 +145,7 @@ export async function findProvidersByDistance(params: {
       hourlyRateCents: row.hourly_rate_cents,
       neighborhood: row.neighborhood,
       distanceKm: Number(row.distance_km),
-      ratingAverage: null,
-      ratingCount: 0,
+      ...rating(row.rating_average, row.rating_count),
     })),
   );
 }
@@ -134,37 +159,39 @@ export async function findProvidersByPlace(params: {
   const distanceKm =
     clientCoords && place.coords ? haversineKm(clientCoords, place.coords) : null;
 
+  const p = alias(providerProfile, "p");
   const rows = await db
     .select({
-      id: providerProfile.id,
-      displayName: providerProfile.displayName,
-      hourlyRateCents: providerProfile.hourlyRateCents,
+      id: p.id,
+      displayName: p.displayName,
+      hourlyRateCents: p.hourlyRateCents,
+      ratingAverage: p.ratingAverage,
+      ratingCount: p.ratingCount,
     })
-    .from(providerProfile)
+    .from(p)
     .innerJoin(
       providerService,
       and(
-        eq(providerService.providerId, providerProfile.id),
+        eq(providerService.providerId, p.id),
         eq(providerService.categorySlug, category),
       ),
     )
     .innerJoin(
       providerArea,
       and(
-        eq(providerArea.providerId, providerProfile.id),
+        eq(providerArea.providerId, p.id),
         eq(providerArea.placeId, place.placeId),
       ),
     )
-    .orderBy(asc(providerProfile.displayName))
+    .orderBy(sql`round(${ADJUSTED_RATING}::numeric, 2) desc`, asc(p.displayName))
     .limit(SEARCH_RESULT_LIMIT + 1);
 
   return withServices(
-    rows.map((row) => ({
+    rows.map(({ ratingAverage, ratingCount, ...row }) => ({
       ...row,
       neighborhood: place.neighborhood,
       distanceKm,
-      ratingAverage: null,
-      ratingCount: 0,
+      ...rating(ratingAverage, ratingCount),
     })),
   );
 }

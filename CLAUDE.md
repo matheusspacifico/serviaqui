@@ -49,6 +49,7 @@ src/
     overpass.ts             cliente do Overpass, com fila e 1 consulta/s (só servidor)
     geo-places.ts           ensurePlaces, ensureCityNeighborhoods (só servidor)
     provider-search.ts      queries da busca e da lista de bairros (só servidor)
+    ranking.ts              nota ajustada (média bayesiana) e critério de ordenação (puro)
     geo-actions.ts          actions públicas: listStateCities, listCityNeighborhoods, detectCity
     browser-location.ts     navigator.geolocation e Permissions API (só browser)
   proxy.ts                  checagem otimista de cookie nas rotas logadas

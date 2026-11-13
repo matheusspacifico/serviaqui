@@ -53,6 +53,7 @@ type DemoProvider = {
   areas: string[];
   hourlyRateCents: number | null;
   description: string;
+  rating?: [average: number, count: number];
 };
 
 const PROVIDERS: DemoProvider[] = [
@@ -63,6 +64,7 @@ const PROVIDERS: DemoProvider[] = [
     areas: ["Sé", "Bela Vista"],
     hourlyRateCents: 9000,
     description: "Instalações e reparos elétricos residenciais.",
+    rating: [4.8, 50],
   },
   {
     name: "Marina Souza",
@@ -71,6 +73,7 @@ const PROVIDERS: DemoProvider[] = [
     areas: ["Pinheiros"],
     hourlyRateCents: 12000,
     description: "Eletricista e instaladora de ar-condicionado.",
+    rating: [5, 1],
   },
   {
     name: "Eletro Mooca",
@@ -87,6 +90,7 @@ const PROVIDERS: DemoProvider[] = [
     areas: ["Vila Mariana"],
     hourlyRateCents: null,
     description: "Pequenos reparos de elétrica e hidráulica.",
+    rating: [3, 20],
   },
   {
     name: "Tatuapé Instalações",
@@ -95,6 +99,7 @@ const PROVIDERS: DemoProvider[] = [
     areas: ["Tatuapé", "Itaquera"],
     hourlyRateCents: 10000,
     description: "Instalações elétricas na zona leste.",
+    rating: [4.5, 8],
   },
   {
     name: "Val Reparos",
@@ -111,6 +116,7 @@ const PROVIDERS: DemoProvider[] = [
     areas: ["Bela Vista"],
     hourlyRateCents: 4000,
     description: "Faxina completa de casas e apartamentos.",
+    rating: [4.9, 30],
   },
   {
     name: "Rosa Almeida",
@@ -159,6 +165,7 @@ const PROVIDERS: DemoProvider[] = [
     areas: ["Centro", "Cambuí"],
     hourlyRateCents: 8500,
     description: "Eletricista em Campinas e região central.",
+    rating: [4.6, 12],
   },
   {
     name: "Lúcia Manicure",
@@ -301,6 +308,8 @@ async function main() {
           state: STATE,
           hourlyRateCents: provider.hourlyRateCents,
           description: provider.description,
+          ratingAverage: provider.rating?.[0] ?? null,
+          ratingCount: provider.rating?.[1] ?? 0,
         };
         await tx
           .insert(providerProfile)

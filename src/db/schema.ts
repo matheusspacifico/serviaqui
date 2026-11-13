@@ -105,6 +105,8 @@ export const providerProfile = pgTable("provider_profile", {
   state: text("state").notNull(),
   hourlyRateCents: integer("hourly_rate_cents"),
   description: text("description"),
+  ratingAverage: doublePrecision("rating_average"),
+  ratingCount: integer("rating_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
