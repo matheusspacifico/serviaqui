@@ -47,6 +47,7 @@ src/
     municipalities.ts       consultas à lista de municípios (só servidor)
     overpass.ts             cliente do Overpass, com fila e 1 consulta/s (só servidor)
     geo-places.ts           ensurePlaces, ensureCityNeighborhoods (só servidor)
+    browser-location.ts     navigator.geolocation e Permissions API (só browser)
   proxy.ts                  checagem otimista de cookie nas rotas logadas
     utils.ts                helper cn()
 drizzle.config.ts

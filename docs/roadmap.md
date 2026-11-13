@@ -35,7 +35,7 @@ Ordem segue as dependências do cronograma.
 
 - [x] T3.1 Definir algoritmo: serviço + bairro/raio, distância Haversine — AT10
 - [x] T3.2 Cidades (lista do IBGE), bairros e coordenadas (OpenStreetMap/Overpass) em `geo_place` — AT11
-- [ ] T3.3 Localização do cliente pelo browser, com fallback para cidade e bairro escolhidos — AT11
+- [x] T3.3 Localização do cliente pelo browser, com fallback para cidade e bairro escolhidos — AT11
 - [ ] T3.4 Query de busca por serviço + raio — AT11
 - [ ] T3.5 Ordenação por avaliação e distância — AT12
 - [ ] T3.6 Tela `/buscar` com filtros e cards de resultado — AT13
