@@ -40,7 +40,7 @@ Ordem segue as dependências do cronograma.
 - [x] T3.5 Ordenação por avaliação e distância — AT12
 - [x] T3.6 Tela `/buscar` com filtros e cards de resultado — AT13
 - [x] T3.7 Estados vazio, carregando e erro — AT13
-- [ ] T3.8 Cenários de teste de bairro/raio — AT14
+- [x] T3.8 Cenários de teste de bairro/raio — AT14
 - [ ] T3.9 Cadastro do prestador: cidade pela lista oficial, autocompletar de bairros e sugestão por bairro de referência + raio; limite de 30 bairros — AT02/AT11
 
 ## Fase 4 — Contato direto (pacote 2.2)

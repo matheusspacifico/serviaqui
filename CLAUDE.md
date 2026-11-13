@@ -72,7 +72,7 @@ docker-compose.yml
 ## Testes
 
 - Unitários só para módulos puros, com `node:test` (`pnpm test`). Arquivo novo de teste entra no script `test` do `package.json`.
-- Roteiros manuais em `docs/testes/` (`autenticacao.md`, `perfil-prestador.md`), com registro de execução no fim.
+- Roteiros manuais em `docs/testes/` (`autenticacao.md`, `perfil-prestador.md`, `busca.md`), com registro de execução no fim.
 
 ## Roadmap
 

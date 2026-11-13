@@ -114,6 +114,10 @@ Ainda não há provedor de e-mail configurado: **o link de redefinição de senh
 
 `pnpm test` roda os testes unitários de telefone, valor por hora e bairros. O roteiro manual de cadastro, edição e página pública está em [`docs/testes/perfil-prestador.md`](docs/testes/perfil-prestador.md).
 
+## Testando a busca
+
+`pnpm test` cobre o cálculo de distância, a validação da busca, a lista de municípios e o critério de ordenação. O roteiro manual, com os prestadores de demonstração e as distâncias esperadas, está em [`docs/testes/busca.md`](docs/testes/busca.md); ele precisa do `pnpm db:seed:demo`.
+
 ## Dados de localização
 
 - **Municípios:** `src/data/municipalities.json` traz os 5.571 municípios do Brasil (código IBGE, nome, UF e coordenadas da sede). Foi gerado em 13/11/2026 por `pnpm data:municipalities` a partir do repositório [kelvins/municipios-brasileiros](https://github.com/kelvins/municipios-brasileiros) (licença MIT), que deriva de dados públicos do IBGE. O app nunca baixa esse arquivo em tempo de execução.
