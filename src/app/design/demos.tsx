@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ChoiceChips } from "@/components/choice-chips";
 import { RatingStars } from "@/components/rating-stars";
+import { SearchableList } from "@/components/searchable-list";
 import { TagInput } from "@/components/tag-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,6 +89,28 @@ export function TagInputDemo() {
       onChange={setValue}
       max={5}
       aria-describedby="demo-tags-hint"
+    />
+  );
+}
+
+const NEIGHBORHOOD_OPTIONS = [
+  { value: "se", label: "Sé", hint: "2" },
+  { value: "bela-vista", label: "Bela Vista", hint: "3" },
+  { value: "pinheiros", label: "Pinheiros", hint: "1" },
+  { value: "liberdade", label: "Liberdade", hint: "sem prestadores", muted: true },
+  { value: "butanta", label: "Butantã", hint: "sem prestadores", muted: true },
+];
+
+export function SearchableListDemo() {
+  const [value, setValue] = useState<string | null>("se");
+  return (
+    <SearchableList
+      options={NEIGHBORHOOD_OPTIONS}
+      value={value}
+      onChange={setValue}
+      filterPlaceholder="Digite o nome do bairro"
+      filterLabel="Bairro"
+      emptyMessage="Nenhum bairro com esse nome."
     />
   );
 }

@@ -1,7 +1,7 @@
 # ServiAqui
 
 Marketplace de prestadores de serviço (projeto de faculdade).
-Estado atual: stack, autenticação, design system e perfil do prestador (cadastro/edição em `/dashboard/prestador`, página pública em `/prestador/[id]`). Busca, contato e avaliação ainda não existem.
+Estado atual: stack, autenticação, design system, perfil do prestador (cadastro/edição em `/dashboard/prestador`, página pública em `/prestador/[id]`) e busca geolocalizada em `/buscar` (por distância ou por bairro). Contato e avaliação ainda não existem.
 
 ## Stack
 
@@ -23,6 +23,7 @@ src/
     dashboard/              rota protegida (requireSession)
       prestador/            criar/editar perfil: page.tsx, provider-profile-form.tsx, actions.ts
     prestador/[id]/         página pública do perfil (sem sessão; nunca consulta o telefone)
+    buscar/                 busca pública: page.tsx (server), search-form.tsx (client), actions.ts
   app/design/               vitrine do design system
   components/               componentes de domínio
   components/ui/            componentes shadcn/ui
@@ -63,8 +64,8 @@ docker-compose.yml
 - Visual quente: primária terracota, neutros quentes, só tema light (sem `.dark`).
 - Tokens em `src/app/globals.css`. Usar sempre os semânticos (`primary`, `muted-foreground`, `destructive`, `success`, `warning`, `rating`), nunca cores cruas tipo `text-red-600`.
 - Fontes: Geist no corpo (`font-sans`), Bricolage Grotesque nos títulos (`font-heading`, aplicado automático em h1–h3).
-- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`, `choice-chips`, `tag-input`); shadcn fica em `src/components/ui/`.
-- Formulários: `FormField` para um `Input` com rótulo/dica/erro; `Field` (mesmo arquivo) para qualquer outro controle (textarea, select) e, com `as="fieldset"`, para grupos. `ChoiceChips` é a seleção múltipla em etiquetas; `TagInput` é a lista de etiquetas digitadas.
+- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`, `choice-chips`, `tag-input`, `provider-card`, `searchable-list`); shadcn fica em `src/components/ui/`.
+- Formulários: `FormField` para um `Input` com rótulo/dica/erro; `Field` (mesmo arquivo) para qualquer outro controle (textarea, select) e, com `as="fieldset"`, para grupos. `ChoiceChips` é a seleção múltipla em etiquetas; `TagInput` é a lista de etiquetas digitadas. `SearchableList` é um campo de filtro com lista de seleção única (cidades, bairros). `ProviderCard` é o card de resultado da busca.
 - Vitrine em `/design`: todo componente novo reutilizável entra lá.
 - Toasts com `sonner` (`toast.success(...)`); o `Toaster` já está no layout.
 
@@ -112,6 +113,10 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - O Overpass só é chamado por `ensureCityNeighborhoods` (uma vez por cidade) e só recebe o código IBGE. Na action de salvar perfil ele roda em `after()`, sem atrasar a resposta.
 - A busca é pública e lida por server actions (`searchProviders` em `src/app/buscar/actions.ts`, mais as de `src/lib/geo-actions.ts`): exceção consciente a "mutações via server actions", porque as coordenadas do cliente não podem ir na URL. Elas não chamam `requireSession`, não logam a entrada e não selecionam `phone`.
 - As coordenadas do cliente nunca são gravadas, logadas, postas na URL nem enviadas a serviço externo.
+- `/buscar` é pública: fica fora do `matcher` do proxy. É a página inicial de quem está logado (`/` redireciona para lá) e o destino padrão depois do login (`DEFAULT_REDIRECT`). `/dashboard` é "Minha conta".
+- Estado da busca na URL: `servico` sempre; por distância, `raio` e `ordem`; por bairro, `local` (id de `geo_place`). A URL é atualizada com `history.replaceState`.
+- A localização do cliente só é pedida por clique (pin ou "Distância"); ao abrir, só é usada se a permissão já estiver concedida.
+- Telas que mostram bairros trazem o crédito "© OpenStreetMap".
 - Erros do Better Auth são exibidos via `authErrorMessage` (`src/lib/auth-errors.ts`), nunca `error.message`.
 - Sem provedor de e-mail ainda: o link de reset de senha é apenas logado no console em `src/lib/auth.ts`.
 - Comentários no código só quando realmente necessário.

@@ -2,7 +2,7 @@
 
 Marketplace de prestadores de serviço. Projeto de faculdade.
 
-Nesta etapa o repositório contém a autenticação (cadastro, login, recuperação de senha) e o perfil do prestador: cadastro e edição em `/dashboard/prestador` e página pública em `/prestador/[id]`. Busca, contato e avaliação ainda não existem.
+Nesta etapa o repositório contém a autenticação (cadastro, login, recuperação de senha), o perfil do prestador (cadastro e edição em `/dashboard/prestador`, página pública em `/prestador/[id]`) e a busca de prestadores em `/buscar`, por distância ou por bairro. Contato e avaliação ainda não existem.
 
 ## Stack
 

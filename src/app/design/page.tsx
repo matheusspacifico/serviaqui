@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Logo } from "@/components/logo";
+import { ProviderCard } from "@/components/provider-card";
 import { Field, FormField } from "@/components/form-field";
 import { RatingStars } from "@/components/rating-stars";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -20,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   ChoiceChipsDemo,
   RatingInputDemo,
+  SearchableListDemo,
   SelectDemo,
   TagInputDemo,
   ToastDemo,
@@ -38,6 +40,43 @@ const colors = [
   { name: "rating", className: "bg-rating text-foreground" },
   { name: "background", className: "bg-background text-foreground border" },
   { name: "card", className: "bg-card text-card-foreground border" },
+];
+
+const cardExamples = [
+  {
+    id: "exemplo-1",
+    displayName: "Carlos Elétrica",
+    hourlyRateCents: 9000,
+    services: [
+      { slug: "eletricista", name: "Eletricista" },
+      { slug: "ar-condicionado", name: "Técnico de ar-condicionado" },
+      { slug: "encanador", name: "Encanador" },
+    ],
+    neighborhood: "Pinheiros",
+    distanceKm: 2.34,
+    ratingAverage: 4.8,
+    ratingCount: 12,
+  },
+  {
+    id: "exemplo-2",
+    displayName: "Rosa Almeida",
+    hourlyRateCents: null,
+    services: [{ slug: "diarista", name: "Diarista" }],
+    neighborhood: "Bela Vista",
+    distanceKm: 0.34,
+    ratingAverage: null,
+    ratingCount: 0,
+  },
+  {
+    id: "exemplo-3",
+    displayName: "Tatuapé Instalações e Reparos Residenciais",
+    hourlyRateCents: 10000,
+    services: [{ slug: "eletricista", name: "Eletricista" }],
+    neighborhood: "Tatuapé",
+    distanceKm: null,
+    ratingAverage: 4.5,
+    ratingCount: 8,
+  },
 ];
 
 function Section({
@@ -210,6 +249,33 @@ export default function DesignPage() {
             </div>
           </CardContent>
         </Card>
+      </Section>
+
+      <Separator />
+
+      <Section title="Resultado de busca (ProviderCard)">
+        <p className="text-sm text-muted-foreground">
+          Com nota e distância; novo com &quot;Valor a combinar&quot;; sem
+          distância (só o bairro).
+        </p>
+        <ul className="flex max-w-2xl flex-col gap-3">
+          {cardExamples.map((provider) => (
+            <li key={provider.id}>
+              <ProviderCard provider={provider} highlightSlug="eletricista" />
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <Separator />
+
+      <Section title="Lista filtrável (SearchableList)">
+        <p className="text-sm text-muted-foreground">
+          Filtra sem acento e sem caixa; setas e Enter escolhem.
+        </p>
+        <div className="max-w-sm rounded-lg border p-3">
+          <SearchableListDemo />
+        </div>
       </Section>
 
       <Separator />

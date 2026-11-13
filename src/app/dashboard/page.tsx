@@ -40,6 +40,19 @@ export default async function DashboardPage() {
             <CardDescription>Logado como {session.user.email}</CardDescription>
           </CardHeader>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Encontre serviços</CardTitle>
+            <CardDescription>
+              Busque prestadores que atendem perto de você.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button nativeButton={false} render={<Link href="/buscar" />}>
+              Buscar prestadores
+            </Button>
+          </CardContent>
+        </Card>
         {profile ? (
           <Card>
             <CardHeader>
