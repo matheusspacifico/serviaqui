@@ -54,7 +54,7 @@ Criar as tabelas no banco a partir de `src/db/schema.ts`:
 pnpm db:push
 ```
 
-Gravar as categorias de serviço (pode rodar mais de uma vez; não duplica):
+Gravar as categorias de serviço e os bairros das cidades que já vêm no repositório (hoje, São Carlos/SP). Pode rodar mais de uma vez; não duplica:
 
 ```bash
 pnpm db:seed
@@ -121,6 +121,7 @@ Ainda não há provedor de e-mail configurado: **o link de redefinição de senh
 ## Dados de localização
 
 - **Municípios:** `src/data/municipalities.json` traz os 5.571 municípios do Brasil (código IBGE, nome, UF e coordenadas da sede). Foi gerado em 13/11/2026 por `pnpm data:municipalities` a partir do repositório [kelvins/municipios-brasileiros](https://github.com/kelvins/municipios-brasileiros) (licença MIT), que deriva de dados públicos do IBGE. O app nunca baixa esse arquivo em tempo de execução.
+- **Cidades pré-carregadas:** `src/data/preloaded-cities.json` guarda os bairros de São Carlos/SP (285, extraídos do OpenStreetMap em 13/11/2026). O `pnpm db:seed` grava esses bairros, então a cidade funciona na hora, sem consultar o mapa. Para incluir outra cidade: abrir a cidade em `/buscar` (para carregá-la do mapa) e rodar `pnpm data:city SP "Nome da Cidade"`.
 - **Bairros:** vêm do [OpenStreetMap](https://www.openstreetmap.org/copyright) pela API Overpass, uma consulta por cidade, na primeira vez que alguém precisa dela. O resultado fica nas tabelas `geo_place` e `geo_city` e não é consultado de novo. O Overpass recebe só o código IBGE do município.
 
 ## Segurança

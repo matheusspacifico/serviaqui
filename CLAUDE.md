@@ -30,11 +30,12 @@ src/
   db/
     index.ts                client Drizzle
     schema.ts               schema do banco (único lugar)
-    seed.ts                 seed das categorias de serviço (pnpm db:seed)
+    seed.ts                 seed das categorias de serviço e das cidades pré-carregadas (pnpm db:seed)
     seed-demo.ts            prestadores fictícios em São Paulo e Campinas (pnpm db:seed:demo)
     places.ts               liga áreas antigas a geo_place e carrega cidades (pnpm db:places)
   data/
     municipalities.json     municípios do Brasil (gerado por scripts/build-municipalities.ts; commitado)
+    preloaded-cities.json   bairros de cidades gravados pelo seed, sem consultar o mapa (hoje São Carlos/SP)
   lib/
     auth.ts                 config do Better Auth (server)
     auth-client.ts          client do Better Auth (browser)
@@ -89,10 +90,11 @@ pnpm test         # testes unitários (node:test via tsx) dos módulos puros de 
 pnpm db:up        # sobe o Postgres (docker compose up -d)
 pnpm db:down      # derruba o Postgres
 pnpm db:push      # aplica o schema no banco
-pnpm db:seed      # grava as categorias de serviço (idempotente; rodar depois do db:push)
+pnpm db:seed      # grava as categorias e os bairros das cidades pré-carregadas (idempotente; rodar depois do db:push)
 pnpm db:seed:demo # prestadores de demonstração com coordenadas fixas (--clean remove)
 pnpm db:places    # liga áreas sem place_id a geo_place e carrega as cidades dos perfis (--reload recarrega)
 pnpm data:municipalities  # regenera src/data/municipalities.json
+pnpm data:city SP "São Carlos"  # copia os bairros de uma cidade já carregada no banco para src/data/preloaded-cities.json
 pnpm db:studio    # Drizzle Studio
 pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 ```
