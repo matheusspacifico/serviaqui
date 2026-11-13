@@ -168,4 +168,22 @@ A spec previa o CT-55 em 2 km. Com a sede de São Paulo do arquivo de município
 
 | Data | Quem executou | Commit | Navegador | Resultado |
 |---|---|---|---|---|
+| 13/11/2026 | Claude Code, com scripts Playwright (execução automatizada, não manual) | `fb4d298` | Chromium headless (Playwright 1.65), `pnpm dev` | CT-47 a CT-104: OK, com as ressalvas abaixo |
 | | | | | |
+
+Observações da execução de 13/11/2026:
+
+- `pnpm test`: 87 testes, todos passando.
+- A localização foi simulada pela API de geolocalização do Playwright, não pelo painel Sensors. Os passos de Drizzle Studio foram feitos por SQL direto no Postgres do Docker.
+- **Aviso de permissão (CT-56, CT-61, CT-62):** o Chromium headless não mostra o aviso de localização; sem permissão ele responde "negado" na hora. Foi conferido que a página não chama a geolocalização ao abrir (CT-56), que escolher "Distância" chama uma vez (CT-62) e que a recusa mostra a mensagem, abre o painel no modo "Bairro" e põe o foco no botão de cidade (CT-61). Ver o aviso do navegador aparecer exige a passada manual.
+- **Valores conferidos (borda e ordenação):** CT-47 a CT-49 e CT-50 com as distâncias da matriz ("≈ 100 m", "≈ 3,6 km", "≈ 4,4 km", "≈ 5,8 km", "≈ 7,3 km"); CT-52 vazio em 2 km e presente em 5 km (2,01 km); CT-55 "≈ 2,0 km"; CT-71 "≈ 7,2 km"; CT-81 e CT-82 na ordem exata da tabela; CT-83 com Eletro Mooca no topo.
+- **CT-71:** com a localização em Pinheiros a cidade detectada foi Taboão da Serra/SP (a sede dela fica mais perto que a de São Paulo). É a limitação de divisa prevista na spec; o roteiro manda escolher São Paulo/SP.
+- **CT-77, CT-78, CT-100, CT-104 (mapa real):** feitos com Porto Feliz/SP (136 bairros) e Salto/SP (81 bairros). O Overpass público estava lento e chegou a ficar fora do ar durante a execução (respostas 502 e de quase 30 s). Por isso, no CT-77 a primeira abertura mostrou a mensagem "Só demora na primeira vez", depois o aviso de bairros incompletos aos 15 s, e os bairros apareceram com "Tentar de novo" quando a carga em segundo plano terminou. No CT-100 a cidade entrou em `geo_city`, mas o toast levou 15 s em vez de ser imediato: o formulário já tinha uma carga de bairros pendente e o browser envia uma action por vez. Com o mapa respondendo normalmente a espera é a da própria consulta (poucos segundos).
+- **CT-79:** feito com o `pnpm dev` reiniciado com `OVERPASS_URL` inválida: aviso e botão "Tentar de novo" conferidos. A segunda metade (corrigir a URL e os bairros aparecerem) é o mesmo caminho do CT-77.
+- **CT-88:** vasculhados a URL, as tabelas `user`, `session`, `account`, `verification`, `provider_profile`, `provider_area` e `provider_service`, as respostas das actions e o log do `pnpm dev`. Esta execução achou e corrigiu um vazamento: o `next dev` imprimia os argumentos das actions (com as coordenadas) no terminal; `next.config.ts` passou a desligar esse log.
+- **CT-89:** todas as requests do browser foram para `localhost:3000`; as coordenadas saíram só no corpo das actions, com 3 casas (`-23.55`, `-46.633`).
+- **CT-90:** com a resposta da busca atrasada em 1 s, quatro esqueletos de 110 px, mesma altura dos cards.
+- **CT-91:** o container do banco foi parado e religado durante o teste.
+- **CT-93:** em 360 px, os três controles da barra na mesma linha, sem rolagem horizontal, painel dentro da tela.
+- **Não executado:** a navegação só por teclado (critério de aceite da T3.6) e a conferência visual em navegador real. Falta uma passada manual para cumprir o roteiro como escrito.
+- **Dados:** os prestadores de demonstração foram **mantidos de propósito** no banco local (não foi rodado `pnpm db:seed:demo --clean`). As contas de teste criadas na execução foram apagadas. Ficaram em `geo_place`/`geo_city` os bairros reais de Itu, Salto e Porto Feliz, carregados do mapa.

@@ -83,6 +83,7 @@ A cidade é escolhida da lista oficial de municípios e os bairros vêm do mapa 
 | Data | Quem executou | Commit | Navegador | Resultado |
 |---|---|---|---|---|
 | 12/11/2026 | Claude Code, com script Playwright (execução automatizada, não manual) | `51370d7` | Chromium 155.0.8059.12 (headless), `pnpm dev` | CT-25 a CT-46: OK |
+| 13/11/2026 | Claude Code, com scripts Playwright (execução automatizada, não manual) | `fb4d298` | Chromium headless (Playwright 1.65), `pnpm dev` | CT-105 a CT-116: OK. CT-25 a CT-46 **não** foram refeitos por inteiro depois das mudanças da Fase 3 |
 | | | | | |
 
 Observações da execução de 12/11/2026:
@@ -93,3 +94,11 @@ Observações da execução de 12/11/2026:
 - CT-42: foram vasculhados o HTML final e as respostas que o navegador recebeu ao abrir a página, ignorando espaços e pontuação.
 - "Nenhuma request" (CT-28) foi conferido contando os `POST` para `/dashboard/prestador`.
 - Falta uma passada manual em navegador real para cumprir o roteiro como escrito.
+
+Observações da execução de 13/11/2026:
+
+- `pnpm test`: 87 testes, todos passando.
+- CT-106: a cidade foi adulterada alterando o corpo da request da action (`"city":"Campinas"` → `"Campnas"`); `updated_at` não mudou.
+- CT-112: Itu/SP, referência "Centro", "Até 10 km": 30 bairros na lista e a mensagem "O mapa tem 179 bairros nesse raio; ficaram os mais próximos, até o limite de 30."; com 30 o campo ficou desabilitado, e o perfil salvou e reabriu com os 30.
+- CT-116: a request de `suggestNeighborhoods` repetida sem cookie devolveu redirecionamento (307) para `/sign-in?redirectTo=%2Fdashboard%2Fprestador`, sem bairros.
+- Dos casos antigos, só foram reconferidos nesta execução os pontos que a Fase 3 mudou: destino padrão `/buscar` depois de entrar e ao abrir `/sign-in` logado, retorno a `/dashboard` com `redirectTo`, cidade escolhida da lista e limite de 30 bairros. CT-25 a CT-46 (e CT-01 a CT-24 do `autenticacao.md`) precisam de nova passada completa.
