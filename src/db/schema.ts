@@ -5,6 +5,7 @@ import {
   timestamp,
   boolean,
   integer,
+  doublePrecision,
   index,
   uniqueIndex,
   primaryKey,
@@ -104,6 +105,8 @@ export const providerProfile = pgTable("provider_profile", {
   state: text("state").notNull(),
   hourlyRateCents: integer("hourly_rate_cents"),
   description: text("description"),
+  ratingAverage: doublePrecision("rating_average"),
+  ratingCount: integer("rating_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
@@ -136,6 +139,51 @@ export const providerService = pgTable(
   ],
 );
 
+export const geoPlace = pgTable(
+  "geo_place",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    state: text("state").notNull(),
+    city: text("city").notNull(),
+    cityKey: text("city_key").notNull(),
+    neighborhood: text("neighborhood").notNull(),
+    neighborhoodKey: text("neighborhood_key").notNull(),
+    origin: text("origin", { enum: ["osm", "provider"] })
+      .default("provider")
+      .notNull(),
+    lat: doublePrecision("lat"),
+    lng: doublePrecision("lng"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("geo_place_key_uidx").on(
+      table.state,
+      table.cityKey,
+      table.neighborhoodKey,
+    ),
+    index("geo_place_lat_lng_idx").on(table.lat, table.lng),
+  ],
+);
+
+export const geoCity = pgTable(
+  "geo_city",
+  {
+    state: text("state").notNull(),
+    cityKey: text("city_key").notNull(),
+    city: text("city").notNull(),
+    ibgeCode: text("ibge_code").notNull(),
+    neighborhoodsLoadedAt: timestamp("neighborhoods_loaded_at").notNull(),
+    neighborhoodCount: integer("neighborhood_count").notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.state, table.cityKey] })],
+);
+
 export const providerArea = pgTable(
   "provider_area",
   {
@@ -147,6 +195,9 @@ export const providerArea = pgTable(
       .references(() => providerProfile.id, { onDelete: "cascade" }),
     neighborhood: text("neighborhood").notNull(),
     neighborhoodKey: text("neighborhood_key").notNull(),
+    placeId: text("place_id").references(() => geoPlace.id, {
+      onDelete: "set null",
+    }),
   },
   (table) => [
     uniqueIndex("provider_area_provider_key_uidx").on(
@@ -154,6 +205,7 @@ export const providerArea = pgTable(
       table.neighborhoodKey,
     ),
     index("provider_area_key_idx").on(table.neighborhoodKey),
+    index("provider_area_place_idx").on(table.placeId),
   ],
 );
 
@@ -215,4 +267,12 @@ export const providerAreaRelations = relations(providerArea, ({ one }) => ({
     fields: [providerArea.providerId],
     references: [providerProfile.id],
   }),
+  place: one(geoPlace, {
+    fields: [providerArea.placeId],
+    references: [geoPlace.id],
+  }),
+}));
+
+export const geoPlaceRelations = relations(geoPlace, ({ many }) => ({
+  areas: many(providerArea),
 }));

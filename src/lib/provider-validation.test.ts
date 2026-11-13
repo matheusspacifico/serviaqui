@@ -4,10 +4,13 @@ import {
   formatHourlyRate,
   formatPhone,
   formatPhoneInput,
+  mergeSuggestedNeighborhoods,
   neighborhoodKey,
   normalizePhone,
   parseHourlyRate,
+  parseNeighborhoodSuggestionInput,
   parseProviderProfile,
+  type NeighborhoodSuggestionInput,
   type ProviderProfileInput,
 } from "./provider-validation";
 
@@ -201,11 +204,16 @@ describe("parseProviderProfile", () => {
     }
   });
 
-  it("limita a 10 bairros e valida o tamanho de cada um", () => {
-    const eleven = Array.from({ length: 11 }, (_, i) => `Bairro ${i + 1}`);
+  it("limita a 30 bairros e valida o tamanho de cada um", () => {
+    const thirty = Array.from({ length: 30 }, (_, i) => `Bairro ${i + 1}`);
+    assert.equal(
+      parseProviderProfile(validInput({ neighborhoods: thirty })).ok,
+      true,
+    );
+    const eleven = [...thirty, "Bairro 31"];
     assert.equal(
       errorsOf(validInput({ neighborhoods: eleven })).neighborhoods,
-      "Adicione no máximo 10 bairros.",
+      "Adicione no máximo 30 bairros.",
     );
     assert.equal(
       errorsOf(validInput({ neighborhoods: ["A"] })).neighborhoods,
@@ -303,5 +311,80 @@ describe("formatadores", () => {
     assert.equal(formatHourlyRate(8000), "R$ 80,00/h");
     assert.equal(formatHourlyRate(8050), "R$ 80,50/h");
     assert.equal(formatHourlyRate(100_000), "R$ 1.000,00/h");
+  });
+});
+
+describe("parseNeighborhoodSuggestionInput", () => {
+  const parse = (input: unknown) =>
+    parseNeighborhoodSuggestionInput(input as NeighborhoodSuggestionInput);
+
+  it("aceita referência e raio da lista", () => {
+    assert.deepEqual(parse({ placeId: " abc ", radiusKm: 5 }), {
+      ok: true,
+      data: { placeId: "abc", radiusKm: 5 },
+    });
+  });
+
+  it("recusa referência vazia", () => {
+    assert.deepEqual(parse({ placeId: "", radiusKm: 5 }), {
+      ok: false,
+      fieldErrors: { reference: "Escolha um bairro de referência da lista." },
+    });
+  });
+
+  it("recusa raio fora da lista", () => {
+    assert.deepEqual(parse({ placeId: "abc", radiusKm: 20 }), {
+      ok: false,
+      fieldErrors: { radiusKm: "Escolha uma das distâncias da lista." },
+    });
+  });
+
+  it("não lança com tipos errados", () => {
+    for (const input of [null, undefined, "x", { placeId: 1, radiusKm: "5" }]) {
+      const result = parse(input);
+      assert.equal(result.ok, false);
+      assert.deepEqual(Object.keys(result.ok ? {} : result.fieldErrors).sort(), [
+        "radiusKm",
+        "reference",
+      ]);
+    }
+  });
+});
+
+describe("mergeSuggestedNeighborhoods", () => {
+  it("mantém os existentes e soma os sugeridos sem repetir", () => {
+    assert.deepEqual(
+      mergeSuggestedNeighborhoods(
+        ["Bairro Novo", "cambui"],
+        ["Centro", "Cambuí", "Taquaral"],
+      ),
+      {
+        neighborhoods: ["Bairro Novo", "cambui", "Centro", "Taquaral"],
+        added: 2,
+        leftOut: 0,
+      },
+    );
+  });
+
+  it("respeita o limite, dando prioridade aos existentes e aos mais próximos", () => {
+    assert.deepEqual(
+      mergeSuggestedNeighborhoods(["A1", "A2"], ["B1", "B2", "B3"], 4),
+      { neighborhoods: ["A1", "A2", "B1", "B2"], added: 2, leftOut: 1 },
+    );
+  });
+
+  it("não duplica ao sugerir duas vezes", () => {
+    const first = mergeSuggestedNeighborhoods([], ["Centro", "Cambuí"]);
+    assert.deepEqual(
+      mergeSuggestedNeighborhoods(first.neighborhoods, ["Centro", "Cambuí"]),
+      { neighborhoods: ["Centro", "Cambuí"], added: 0, leftOut: 0 },
+    );
+  });
+
+  it("usa o limite de 30 por padrão", () => {
+    const many = Array.from({ length: 40 }, (_, i) => `Bairro ${i + 1}`);
+    const result = mergeSuggestedNeighborhoods([], many);
+    assert.equal(result.neighborhoods.length, 30);
+    assert.equal(result.leftOut, 10);
   });
 });

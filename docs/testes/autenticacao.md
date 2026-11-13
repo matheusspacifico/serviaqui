@@ -26,7 +26,7 @@ Se o e-mail já existir no banco de uma execução anterior, apagar o usuário n
 
 | ID | Pré-condição | Passos | Resultado esperado | OK / Falhou |
 |---|---|---|---|---|
-| CT-01 | Deslogado; e-mail da conta de teste ainda não cadastrado | Abrir `/sign-up`, preencher nome, e-mail e senha da conta de teste, clicar em **Criar conta** | Vai para `/dashboard`, logado, com a saudação "Olá, Ana" | |
+| CT-01 | Deslogado; e-mail da conta de teste ainda não cadastrado | Abrir `/sign-up`, preencher nome, e-mail e senha da conta de teste, clicar em **Criar conta** | Vai para `/buscar`, logado (o cabeçalho mostra "Minha conta"); em `/dashboard`, a saudação é "Olá, Ana" | |
 | CT-02 | Deslogado | Abrir `/sign-up` e clicar em **Criar conta** com tudo vazio | "Informe seu nome.", "Informe seu e-mail." e "Informe uma senha." embaixo de cada campo; foco no nome; nenhum balão do navegador; nenhuma request | |
 | CT-03 | Deslogado | Em `/sign-up`, preencher nome e senha válidos e tentar os e-mails `ana@` e depois `ana.com` | "Digite um e-mail válido, como nome@exemplo.com." no campo de e-mail; nenhuma request | |
 | CT-04 | Deslogado | Em `/sign-up`, nome e e-mail válidos e senha `1234567` | "A senha precisa ter pelo menos 8 caracteres." no campo de senha; nenhuma request | |
@@ -38,7 +38,7 @@ Se o e-mail já existir no banco de uma execução anterior, apagar o usuário n
 
 | ID | Pré-condição | Passos | Resultado esperado | OK / Falhou |
 |---|---|---|---|---|
-| CT-08 | Conta de teste existe; deslogado | Em `/sign-in`, entrar com e-mail e senha corretos | Vai para `/dashboard` | |
+| CT-08 | Conta de teste existe; deslogado | Em `/sign-in`, entrar com e-mail e senha corretos | Vai para `/buscar` | |
 | CT-09 | Conta de teste existe; deslogado | Em `/sign-in`, e-mail correto e senha `errada-123` | "E-mail ou senha incorretos.", em português | |
 | CT-10 | Deslogado | Em `/sign-in`, e-mail `ninguem@exemplo.com` e qualquer senha | Mesma mensagem do CT-09 | |
 | CT-11 | Deslogado | Em `/sign-in`, clicar em **Entrar** com tudo vazio | "Informe seu e-mail." e "Informe sua senha." nos campos; nenhuma request | |
@@ -48,10 +48,10 @@ Se o e-mail já existir no banco de uma execução anterior, apagar o usuário n
 | ID | Pré-condição | Passos | Resultado esperado | OK / Falhou |
 |---|---|---|---|---|
 | CT-12 | Deslogado | Abrir `/dashboard` pela barra de endereço; depois fazer login na tela que abrir | Vai para `/sign-in?redirectTo=%2Fdashboard`; após o login, volta ao dashboard | |
-| CT-13 | Logado | Abrir pela barra de endereço `/sign-in`, `/sign-up` e `/forgot-password` | Vai para `/dashboard` nos três | |
+| CT-13 | Logado | Abrir pela barra de endereço `/sign-in`, `/sign-up` e `/forgot-password` | Vai para `/buscar` nos três | |
 | CT-14 | Logado, em `/dashboard` | Clicar em **Sair** e depois no botão voltar do navegador | Sair leva a `/sign-in`; ao voltar, o dashboard não reaparece (fica na tela de login) | |
 | CT-15 | Logado | No Drizzle Studio, apagar a linha do usuário na tabela `session` (o cookie continua no navegador); abrir `/dashboard` | Abre a tela de login, sem loop de redirecionamento | |
-| CT-16 | Deslogado | Abrir `/sign-in?redirectTo=https://example.com` e fazer login | Termina em `/dashboard`, não em `example.com` | |
+| CT-16 | Deslogado | Abrir `/sign-in?redirectTo=https://example.com` e fazer login | Termina em `/buscar`, não em `example.com` | |
 
 ## Recuperação de senha
 

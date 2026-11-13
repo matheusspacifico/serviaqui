@@ -2,7 +2,7 @@
 
 Marketplace de prestadores de serviço. Projeto de faculdade.
 
-Nesta etapa o repositório contém a autenticação (cadastro, login, recuperação de senha) e o perfil do prestador: cadastro e edição em `/dashboard/prestador` e página pública em `/prestador/[id]`. Busca, contato e avaliação ainda não existem.
+Nesta etapa o repositório contém a autenticação (cadastro, login, recuperação de senha), o perfil do prestador (cadastro e edição em `/dashboard/prestador`, página pública em `/prestador/[id]`) e a busca de prestadores em `/buscar`, por distância ou por bairro. Contato e avaliação ainda não existem.
 
 ## Stack
 
@@ -37,6 +37,8 @@ cp .env.example .env
 | `DATABASE_URL` | Conexão com o Postgres. O valor do exemplo já aponta pro container do Docker. |
 | `BETTER_AUTH_SECRET` | Chave usada pelo Better Auth. Gere uma com `openssl rand -base64 32`. |
 | `BETTER_AUTH_URL` | URL base da aplicação. Em desenvolvimento, `http://localhost:3000`. |
+| `OVERPASS_URL` | Endereço da API Overpass (OpenStreetMap), de onde vêm os bairros de cada cidade. Opcional; o valor do exemplo é o padrão. |
+| `GEO_USER_AGENT` | Identificação do app nas consultas ao Overpass. Troque o contato pelo seu. Vazio, os bairros não são carregados do mapa. |
 
 ## Banco de dados
 
@@ -52,10 +54,22 @@ Criar as tabelas no banco a partir de `src/db/schema.ts`:
 pnpm db:push
 ```
 
-Gravar as categorias de serviço (pode rodar mais de uma vez; não duplica):
+Gravar as categorias de serviço e os bairros das cidades que já vêm no repositório (hoje, São Carlos/SP). Pode rodar mais de uma vez; não duplica:
 
 ```bash
 pnpm db:seed
+```
+
+Gravar prestadores fictícios em São Paulo e Campinas, para testar a busca sem depender do mapa (rodar depois do `db:seed`; `--clean` remove o que o script criou):
+
+```bash
+pnpm db:seed:demo
+```
+
+Ligar os bairros dos perfis já cadastrados aos lugares do mapa e carregar os bairros das cidades deles (só é preciso em bancos que já tinham perfis antes da busca; `--reload` força nova carga das cidades):
+
+```bash
+pnpm db:places
 ```
 
 Abrir o Drizzle Studio pra inspecionar os dados:
@@ -85,7 +99,8 @@ pnpm build       # build de produção
 pnpm start       # roda o build
 pnpm lint        # ESLint
 pnpm typecheck   # tsc --noEmit
-pnpm test        # testes unitários das regras do perfil do prestador
+pnpm test        # testes unitários (perfil do prestador, distância, busca, municípios)
+pnpm data:municipalities # regenera src/data/municipalities.json (já vem commitado)
 pnpm db:generate # gera migrations SQL a partir do schema (não usado por enquanto)
 ```
 
@@ -98,6 +113,16 @@ Ainda não há provedor de e-mail configurado: **o link de redefinição de senh
 ## Testando o perfil do prestador
 
 `pnpm test` roda os testes unitários de telefone, valor por hora e bairros. O roteiro manual de cadastro, edição e página pública está em [`docs/testes/perfil-prestador.md`](docs/testes/perfil-prestador.md).
+
+## Testando a busca
+
+`pnpm test` cobre o cálculo de distância, a validação da busca, a lista de municípios e o critério de ordenação. O roteiro manual, com os prestadores de demonstração e as distâncias esperadas, está em [`docs/testes/busca.md`](docs/testes/busca.md); ele precisa do `pnpm db:seed:demo`.
+
+## Dados de localização
+
+- **Municípios:** `src/data/municipalities.json` traz os 5.571 municípios do Brasil (código IBGE, nome, UF e coordenadas da sede). Foi gerado em 13/11/2026 por `pnpm data:municipalities` a partir do repositório [kelvins/municipios-brasileiros](https://github.com/kelvins/municipios-brasileiros) (licença MIT), que deriva de dados públicos do IBGE. O app nunca baixa esse arquivo em tempo de execução.
+- **Cidades pré-carregadas:** `src/data/preloaded-cities.json` guarda os bairros de São Carlos/SP (285, extraídos do OpenStreetMap em 13/11/2026). O `pnpm db:seed` grava esses bairros, então a cidade funciona na hora, sem consultar o mapa. Para incluir outra cidade: abrir a cidade em `/buscar` (para carregá-la do mapa) e rodar `pnpm data:city SP "Nome da Cidade"`.
+- **Bairros:** vêm do [OpenStreetMap](https://www.openstreetmap.org/copyright) pela API Overpass, uma consulta por cidade, na primeira vez que alguém precisa dela. O resultado fica nas tabelas `geo_place` e `geo_city` e não é consultado de novo. O Overpass recebe só o código IBGE do município.
 
 ## Segurança
 

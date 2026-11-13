@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { serviceCategory } from "./schema";
+import preloadedCities from "@/data/preloaded-cities.json";
+import { neighborhoodKey } from "@/lib/provider-validation";
+import { geoCity, geoPlace, serviceCategory } from "./schema";
 
 const CATEGORIES: [slug: string, name: string][] = [
   ["eletricista", "Eletricista"],
@@ -45,6 +47,50 @@ async function main() {
       .returning({ slug: serviceCategory.slug });
 
     console.log(`${rows.length} categorias gravadas em service_category.`);
+
+    for (const city of preloadedCities) {
+      const { state, cityKey, neighborhoods } = city;
+      await db.transaction(async (tx) => {
+        await tx
+          .insert(geoPlace)
+          .values(
+            neighborhoods.map(({ name, lat, lng }) => ({
+              state,
+              city: city.city,
+              cityKey,
+              neighborhood: name,
+              neighborhoodKey: neighborhoodKey(name),
+              origin: "osm" as const,
+              lat,
+              lng,
+            })),
+          )
+          .onConflictDoUpdate({
+            target: [geoPlace.state, geoPlace.cityKey, geoPlace.neighborhoodKey],
+            set: {
+              neighborhood: sql`excluded.neighborhood`,
+              lat: sql`excluded.lat`,
+              lng: sql`excluded.lng`,
+              origin: sql`excluded.origin`,
+              updatedAt: new Date(),
+            },
+          });
+        await tx
+          .insert(geoCity)
+          .values({
+            state,
+            cityKey,
+            city: city.city,
+            ibgeCode: city.ibgeCode,
+            neighborhoodsLoadedAt: new Date(),
+            neighborhoodCount: neighborhoods.length,
+          })
+          .onConflictDoNothing();
+      });
+      console.log(
+        `${city.city}/${state}: ${neighborhoods.length} bairros gravados sem consultar o mapa.`,
+      );
+    }
   } finally {
     await client.end();
   }

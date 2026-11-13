@@ -1,7 +1,7 @@
 # ServiAqui
 
 Marketplace de prestadores de serviço (projeto de faculdade).
-Estado atual: stack, autenticação, design system e perfil do prestador (cadastro/edição em `/dashboard/prestador`, página pública em `/prestador/[id]`). Busca, contato e avaliação ainda não existem.
+Estado atual: stack, autenticação, design system, perfil do prestador (cadastro/edição em `/dashboard/prestador`, página pública em `/prestador/[id]`) e busca geolocalizada em `/buscar` (por distância ou por bairro). Contato e avaliação ainda não existem.
 
 ## Stack
 
@@ -23,13 +23,19 @@ src/
     dashboard/              rota protegida (requireSession)
       prestador/            criar/editar perfil: page.tsx, provider-profile-form.tsx, actions.ts
     prestador/[id]/         página pública do perfil (sem sessão; nunca consulta o telefone)
+    buscar/                 busca pública: page.tsx (server), search-form.tsx (client), actions.ts
   app/design/               vitrine do design system
   components/               componentes de domínio
   components/ui/            componentes shadcn/ui
   db/
     index.ts                client Drizzle
     schema.ts               schema do banco (único lugar)
-    seed.ts                 seed das categorias de serviço (pnpm db:seed)
+    seed.ts                 seed das categorias de serviço e das cidades pré-carregadas (pnpm db:seed)
+    seed-demo.ts            prestadores fictícios em São Paulo e Campinas (pnpm db:seed:demo)
+    places.ts               liga áreas antigas a geo_place e carrega cidades (pnpm db:places)
+  data/
+    municipalities.json     municípios do Brasil (gerado por scripts/build-municipalities.ts; commitado)
+    preloaded-cities.json   bairros de cidades gravados pelo seed, sem consultar o mapa (hoje São Carlos/SP)
   lib/
     auth.ts                 config do Better Auth (server)
     auth-client.ts          client do Better Auth (browser)
@@ -39,6 +45,15 @@ src/
     redirect.ts             safeRedirectPath (redirectTo seguro)
     provider-validation.ts  campos, limites e validadores do perfil (cliente e servidor)
     provider-queries.ts     leitura de categorias e perfis (só servidor)
+    geo.ts                  Haversine, bounding box, formatDistance (puro)
+    search-validation.ts    limites, tipos e parser da busca (puro)
+    municipalities.ts       consultas à lista de municípios (só servidor)
+    overpass.ts             cliente do Overpass, com fila e 1 consulta/s (só servidor)
+    geo-places.ts           ensurePlaces, ensureCityNeighborhoods (só servidor)
+    provider-search.ts      queries da busca e da lista de bairros (só servidor)
+    ranking.ts              nota ajustada (média bayesiana) e critério de ordenação (puro)
+    geo-actions.ts          actions públicas: listStateCities, listCityNeighborhoods, detectCity
+    browser-location.ts     navigator.geolocation e Permissions API (só browser)
   proxy.ts                  checagem otimista de cookie nas rotas logadas
     utils.ts                helper cn()
 drizzle.config.ts
@@ -50,15 +65,15 @@ docker-compose.yml
 - Visual quente: primária terracota, neutros quentes, só tema light (sem `.dark`).
 - Tokens em `src/app/globals.css`. Usar sempre os semânticos (`primary`, `muted-foreground`, `destructive`, `success`, `warning`, `rating`), nunca cores cruas tipo `text-red-600`.
 - Fontes: Geist no corpo (`font-sans`), Bricolage Grotesque nos títulos (`font-heading`, aplicado automático em h1–h3).
-- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`, `choice-chips`, `tag-input`); shadcn fica em `src/components/ui/`.
-- Formulários: `FormField` para um `Input` com rótulo/dica/erro; `Field` (mesmo arquivo) para qualquer outro controle (textarea, select) e, com `as="fieldset"`, para grupos. `ChoiceChips` é a seleção múltipla em etiquetas; `TagInput` é a lista de etiquetas digitadas.
+- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`, `choice-chips`, `tag-input`, `provider-card`, `searchable-list`, `searchable-select`); shadcn fica em `src/components/ui/`.
+- Formulários: `FormField` para um `Input` com rótulo/dica/erro; `Field` (mesmo arquivo) para qualquer outro controle (textarea, select) e, com `as="fieldset"`, para grupos. `ChoiceChips` é a seleção múltipla em etiquetas; `TagInput` é a lista de etiquetas digitadas. `SearchableList` é um campo de filtro com lista de seleção única (cidades, bairros); `SearchableSelect` é a mesma lista aberta por um botão no estilo do `Select`. `TagInput` aceita `suggestions` (autocompletar) e mostra "Remover todos" a partir de 5 itens. `ProviderCard` é o card de resultado da busca.
 - Vitrine em `/design`: todo componente novo reutilizável entra lá.
 - Toasts com `sonner` (`toast.success(...)`); o `Toaster` já está no layout.
 
 ## Testes
 
 - Unitários só para módulos puros, com `node:test` (`pnpm test`). Arquivo novo de teste entra no script `test` do `package.json`.
-- Roteiros manuais em `docs/testes/` (`autenticacao.md`, `perfil-prestador.md`), com registro de execução no fim.
+- Roteiros manuais em `docs/testes/` (`autenticacao.md`, `perfil-prestador.md`, `busca.md`), com registro de execução no fim.
 
 ## Roadmap
 
@@ -71,11 +86,15 @@ pnpm dev          # servidor de desenvolvimento
 pnpm build        # build de produção
 pnpm lint         # ESLint
 pnpm typecheck    # tsc --noEmit
-pnpm test         # testes unitários (node:test via tsx) de src/lib/provider-validation.ts
+pnpm test         # testes unitários (node:test via tsx) dos módulos puros de src/lib
 pnpm db:up        # sobe o Postgres (docker compose up -d)
 pnpm db:down      # derruba o Postgres
 pnpm db:push      # aplica o schema no banco
-pnpm db:seed      # grava as categorias de serviço (idempotente; rodar depois do db:push)
+pnpm db:seed      # grava as categorias e os bairros das cidades pré-carregadas (idempotente; rodar depois do db:push)
+pnpm db:seed:demo # prestadores de demonstração com coordenadas fixas (--clean remove)
+pnpm db:places    # liga áreas sem place_id a geo_place e carrega as cidades dos perfis (--reload recarrega)
+pnpm data:municipalities  # regenera src/data/municipalities.json
+pnpm data:city SP "São Carlos"  # copia os bairros de uma cidade já carregada no banco para src/data/preloaded-cities.json
 pnpm db:studio    # Drizzle Studio
 pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 ```
@@ -91,6 +110,17 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - Prestador é qualquer conta com uma linha em `provider_profile` (1:1 com `user`); não há coluna de papel. O dono do perfil é sempre o usuário da sessão, nunca um id vindo do cliente.
 - Regras e mensagens do perfil ficam só em `src/lib/provider-validation.ts`; o formulário e a server action chamam o mesmo `parseProviderProfile`.
 - O telefone do prestador não aparece em página pública: `getPublicProviderProfile` não seleciona `phone`. O contato entra na Fase 4, por botões que registram o evento.
+- Lugares: `geo_place` tem uma linha por (UF, cidade, bairro); `geo_city` marca as cidades cujos bairros já vieram do mapa. Toda `provider_area` nova é gravada com `place_id`, via `ensurePlaces`. Bairro fora do mapa fica com a coordenada da sede do município (`origin = "provider"`).
+- No cadastro do prestador a cidade é escolhida da lista (`listStateCities`) e os bairros têm autocompletar (`listCityNeighborhoods`); "Sugerir bairros" (`suggestNeighborhoods`) preenche a lista a partir de um bairro de referência e um raio, que não são gravados. Limite de 30 bairros.
+- A cidade do prestador precisa existir em `src/data/municipalities.json` (`findMunicipality`); grava-se o nome oficial. Esse JSON só é importado por código de servidor.
+- O Overpass só é chamado por `ensureCityNeighborhoods` (uma vez por cidade) e só recebe o código IBGE. Na action de salvar perfil ele roda em `after()`, sem atrasar a resposta.
+- A busca é pública e lida por server actions (`searchProviders` em `src/app/buscar/actions.ts`, mais as de `src/lib/geo-actions.ts`): exceção consciente a "mutações via server actions", porque as coordenadas do cliente não podem ir na URL. Elas não chamam `requireSession`, não logam a entrada e não selecionam `phone`.
+- As coordenadas do cliente nunca são gravadas, logadas, postas na URL nem enviadas a serviço externo. Por isso `next.config.ts` desliga `logging.serverFunctions` (o `next dev` logaria os argumentos das actions).
+- O browser envia uma server action por vez. `listCityNeighborhoods` espera o mapa por no máximo 15 s e devolve `unavailable`; a carga segue em segundo plano (`after`).
+- `/buscar` é pública: fica fora do `matcher` do proxy. É a página inicial de quem está logado (`/` redireciona para lá) e o destino padrão depois do login (`DEFAULT_REDIRECT`). `/dashboard` é "Minha conta". O cabeçalho leva a tudo: "Buscar prestadores", "Oferecer serviços" (ou "Meu perfil", para quem já é prestador; `hasProviderProfile`), "Minha conta" e "Sair"; abaixo de 640 px os três primeiros viram ícones.
+- Estado da busca na URL: `servico` sempre; por distância, `raio` e `ordem`; por bairro, `local` (id de `geo_place`). A URL é atualizada com `history.replaceState`.
+- A localização do cliente só é pedida por clique (pin ou "Distância"); ao abrir, só é usada se a permissão já estiver concedida.
+- Telas que mostram bairros trazem o crédito "© OpenStreetMap".
 - Erros do Better Auth são exibidos via `authErrorMessage` (`src/lib/auth-errors.ts`), nunca `error.message`.
 - Sem provedor de e-mail ainda: o link de reset de senha é apenas logado no console em `src/lib/auth.ts`.
 - Comentários no código só quando realmente necessário.

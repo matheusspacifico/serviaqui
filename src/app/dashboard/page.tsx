@@ -12,9 +12,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+const LIST_FORMAT = new Intl.ListFormat("pt-BR", {
+  style: "long",
+  type: "conjunction",
+});
+
 export default async function DashboardPage() {
   const session = await requireSession("/dashboard");
   const profile = await getOwnProviderProfile(session.user.id);
+  const approximateAreas =
+    profile?.cityRecognized && profile.cityLoaded
+      ? profile.areas
+          .filter((area) => area.precision === "city")
+          .map((area) => area.neighborhood)
+      : [];
 
   return (
     <>
@@ -45,6 +56,20 @@ export default async function DashboardPage() {
                   </li>
                 ))}
               </ul>
+              {!profile.cityRecognized && (
+                <p className="rounded-lg bg-warning px-4 py-3 text-sm text-warning-foreground">
+                  Não reconhecemos a cidade {profile.city}/{profile.state}. Você
+                  aparece para quem busca seus bairros pelo nome, mas não em
+                  buscas por distância. Confira a grafia no seu perfil.
+                </p>
+              )}
+              {approximateAreas.length > 0 && (
+                <p className="rounded-lg bg-warning px-4 py-3 text-sm text-warning-foreground">
+                  Não achamos {LIST_FORMAT.format(approximateAreas)} no mapa.
+                  Usamos o centro da cidade como localização aproximada desses
+                  bairros. Confira a grafia no seu perfil.
+                </p>
+              )}
               <div className="flex flex-wrap gap-2">
                 <Button
                   nativeButton={false}
@@ -62,25 +87,7 @@ export default async function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Ofereça seus serviços</CardTitle>
-              <CardDescription>
-                Crie seu perfil de prestador e apareça para clientes do seu
-                bairro.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                nativeButton={false}
-                render={<Link href="/dashboard/prestador" />}
-              >
-                Criar perfil
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        ) : null}
       </main>
     </>
   );

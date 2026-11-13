@@ -1,4 +1,4 @@
-export const DEFAULT_REDIRECT = "/dashboard";
+export const DEFAULT_REDIRECT = "/buscar";
 
 export function safeRedirectPath(
   value: string | string[] | undefined,

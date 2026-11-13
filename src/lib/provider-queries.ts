@@ -1,7 +1,11 @@
 import { cache } from "react";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { providerProfile, serviceCategory } from "@/db/schema";
+import { geoCity, providerProfile, serviceCategory } from "@/db/schema";
+import { findMunicipality } from "@/lib/municipalities";
+import { neighborhoodKey } from "@/lib/provider-validation";
+
+export type AreaPrecision = "exact" | "city" | "none";
 
 type ServiceRow = { category: { slug: string; name: string; sortOrder: number } };
 type AreaRow = { neighborhood: string };
@@ -28,6 +32,15 @@ export async function listServiceCategories(): Promise<
     .orderBy(asc(serviceCategory.sortOrder));
 }
 
+export const hasProviderProfile = cache(async (userId: string) => {
+  const [row] = await db
+    .select({ id: providerProfile.id })
+    .from(providerProfile)
+    .where(eq(providerProfile.userId, userId))
+    .limit(1);
+  return row !== undefined;
+});
+
 export async function getOwnProviderProfile(userId: string) {
   const row = await db.query.providerProfile.findFirst({
     where: eq(providerProfile.userId, userId),
@@ -43,13 +56,42 @@ export async function getOwnProviderProfile(userId: string) {
     },
     with: {
       services: { columns: {}, with: { category: true } },
-      areas: { columns: { neighborhood: true } },
+      areas: {
+        columns: { neighborhood: true },
+        with: { place: { columns: { origin: true, lat: true } } },
+      },
     },
   });
   if (!row) return null;
 
   const { services, areas, ...profile } = row;
-  return { ...profile, services: toServices(services), areas: toAreas(areas) };
+  const cityKey = neighborhoodKey(profile.city);
+  const cityRecognized = findMunicipality(profile.state, cityKey) !== null;
+  const [loaded] = cityRecognized
+    ? await db
+        .select({ state: geoCity.state })
+        .from(geoCity)
+        .where(and(eq(geoCity.state, profile.state), eq(geoCity.cityKey, cityKey)))
+        .limit(1)
+    : [];
+
+  return {
+    ...profile,
+    services: toServices(services),
+    cityRecognized,
+    cityLoaded: loaded !== undefined,
+    areas: areas
+      .map(({ neighborhood, place }) => {
+        const precision: AreaPrecision =
+          !place || place.lat === null
+            ? "none"
+            : place.origin === "osm"
+              ? "exact"
+              : "city";
+        return { neighborhood, precision };
+      })
+      .sort((a, b) => a.neighborhood.localeCompare(b.neighborhood, "pt-BR")),
+  };
 }
 
 export const getPublicProviderProfile = cache(async (id: string) => {

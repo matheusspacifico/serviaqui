@@ -4,7 +4,7 @@ export const PROVIDER_LIMITS = {
   cityMin: 2,
   cityMax: 80,
   categoriesMax: 5,
-  neighborhoodsMax: 10,
+  neighborhoodsMax: 30,
   neighborhoodMin: 2,
   neighborhoodMax: 60,
   rateMinCents: 100,
@@ -19,6 +19,32 @@ export const BRAZILIAN_STATES: readonly string[] = [
 ];
 
 export const UNKNOWN_CATEGORY_MESSAGE = "Escolha serviços da lista.";
+export const UNKNOWN_CITY_MESSAGE = "Escolha uma cidade da lista.";
+
+export const SUGGESTION_RADII_KM = [2, 5, 10] as const;
+export const DEFAULT_SUGGESTION_RADIUS_KM = 5;
+export const SUGGESTION_MESSAGES = {
+  reference: "Escolha um bairro de referência da lista.",
+  radiusKm: "Escolha uma das distâncias da lista.",
+} as const;
+
+export type SuggestionRadius = (typeof SUGGESTION_RADII_KM)[number];
+
+export type NeighborhoodSuggestionInput = { placeId: string; radiusKm: number };
+
+export type NeighborhoodSuggestion = {
+  name: string;
+  key: string;
+  distanceKm: number;
+};
+
+export type SuggestNeighborhoodsResult =
+  | { ok: true; suggestions: NeighborhoodSuggestion[]; totalFound: number }
+  | {
+      ok: false;
+      fieldErrors: Partial<Record<"reference" | "radiusKm", string>>;
+      formError?: string;
+    };
 
 export type ProviderField =
   | "displayName"
@@ -110,7 +136,7 @@ export function parseHourlyRate(
   return { cents };
 }
 
-function collapseSpaces(value: string): string {
+export function collapseSpaces(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
@@ -229,7 +255,7 @@ export function parseProviderProfile(
 
   const city = text("city")?.trim() ?? "";
   if (!city) {
-    fieldErrors.city = "Informe sua cidade.";
+    fieldErrors.city = UNKNOWN_CITY_MESSAGE;
   } else if (
     city.length < PROVIDER_LIMITS.cityMin ||
     city.length > PROVIDER_LIMITS.cityMax
@@ -269,6 +295,62 @@ export function parseProviderProfile(
       description: description || null,
     },
   };
+}
+
+export function parseNeighborhoodSuggestionInput(
+  input: NeighborhoodSuggestionInput,
+):
+  | { ok: true; data: { placeId: string; radiusKm: SuggestionRadius } }
+  | { ok: false; fieldErrors: Partial<Record<"reference" | "radiusKm", string>> } {
+  const raw: Record<string, unknown> =
+    typeof input === "object" && input !== null
+      ? (input as Record<string, unknown>)
+      : {};
+  const fieldErrors: Partial<Record<"reference" | "radiusKm", string>> = {};
+
+  const placeId = typeof raw.placeId === "string" ? raw.placeId.trim() : "";
+  if (!placeId || placeId.length > 64) {
+    fieldErrors.reference = SUGGESTION_MESSAGES.reference;
+  }
+  const radiusKm = SUGGESTION_RADII_KM.find((radius) => radius === raw.radiusKm);
+  if (radiusKm === undefined) fieldErrors.radiusKm = SUGGESTION_MESSAGES.radiusKm;
+
+  if (radiusKm === undefined || Object.keys(fieldErrors).length > 0) {
+    return { ok: false, fieldErrors };
+  }
+  return { ok: true, data: { placeId, radiusKm } };
+}
+
+export function mergeSuggestedNeighborhoods(
+  current: string[],
+  suggested: string[],
+  max: number = PROVIDER_LIMITS.neighborhoodsMax,
+): { neighborhoods: string[]; added: number; leftOut: number } {
+  const neighborhoods = [...current];
+  const keys = new Set(current.map(neighborhoodKey));
+  let added = 0;
+  let leftOut = 0;
+  for (const name of suggested) {
+    const key = neighborhoodKey(name);
+    if (keys.has(key)) continue;
+    if (neighborhoods.length >= max) {
+      leftOut++;
+      continue;
+    }
+    neighborhoods.push(name);
+    keys.add(key);
+    added++;
+  }
+  return { neighborhoods, added, leftOut };
+}
+
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/);
+  const letters =
+    words.length > 1
+      ? words[0][0] + words[words.length - 1][0]
+      : words[0].slice(0, 2);
+  return letters.toUpperCase();
 }
 
 export function formatPhone(digits: string): string {
