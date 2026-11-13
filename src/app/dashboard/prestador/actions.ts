@@ -11,12 +11,19 @@ import {
 } from "@/db/schema";
 import { ensureCityNeighborhoods, ensurePlaces } from "@/lib/geo-places";
 import { findMunicipality } from "@/lib/municipalities";
+import { listNeighborhoodsAround } from "@/lib/provider-search";
 import {
+  PROVIDER_LIMITS,
+  SUGGESTION_MESSAGES,
   UNKNOWN_CATEGORY_MESSAGE,
+  UNKNOWN_CITY_MESSAGE,
   neighborhoodKey,
+  parseNeighborhoodSuggestionInput,
   parseProviderProfile,
+  type NeighborhoodSuggestionInput,
   type ProviderProfileInput,
   type SaveProviderProfileResult,
+  type SuggestNeighborhoodsResult,
 } from "@/lib/provider-validation";
 import { requireSession } from "@/lib/session";
 
@@ -34,9 +41,7 @@ export async function saveProviderProfile(
   if (!municipality) {
     return {
       ok: false,
-      fieldErrors: {
-        city: `Não encontramos essa cidade em ${typed.state}. Confira a grafia.`,
-      },
+      fieldErrors: { city: UNKNOWN_CITY_MESSAGE },
     };
   }
   const profile = { ...typed, city: municipality.name };
@@ -111,4 +116,39 @@ export async function saveProviderProfile(
   );
 
   return { ok: true, id };
+}
+
+export async function suggestNeighborhoods(
+  input: NeighborhoodSuggestionInput,
+): Promise<SuggestNeighborhoodsResult> {
+  await requireSession("/dashboard/prestador");
+
+  const parsed = parseNeighborhoodSuggestionInput(input);
+  if (!parsed.ok) return { ok: false, fieldErrors: parsed.fieldErrors };
+
+  try {
+    const found = await listNeighborhoodsAround(
+      parsed.data.placeId,
+      parsed.data.radiusKm,
+    );
+    if (!found) {
+      return {
+        ok: false,
+        fieldErrors: { reference: SUGGESTION_MESSAGES.reference },
+      };
+    }
+    return {
+      ok: true,
+      suggestions: found.slice(0, PROVIDER_LIMITS.neighborhoodsMax),
+      totalFound: found.length,
+    };
+  } catch (error) {
+    console.error("[provider] Falha ao sugerir bairros:", error);
+    return {
+      ok: false,
+      fieldErrors: {},
+      formError:
+        "Não foi possível sugerir os bairros agora. Adicione à mão ou tente de novo.",
+    };
+  }
 }

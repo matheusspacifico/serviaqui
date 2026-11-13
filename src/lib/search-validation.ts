@@ -56,6 +56,7 @@ export type SearchNeighborhood = {
   neighborhood: string;
   neighborhoodKey: string;
   providerCount: number;
+  exact: boolean;
 };
 
 export type CityNeighborhoodsResult = {

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ChoiceChips } from "@/components/choice-chips";
 import { RatingStars } from "@/components/rating-stars";
 import { SearchableList } from "@/components/searchable-list";
+import { SearchableSelect } from "@/components/searchable-select";
 import { TagInput } from "@/components/tag-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -78,8 +79,22 @@ export function ChoiceChipsDemo() {
   );
 }
 
+const TAG_SUGGESTIONS = [
+  { value: "vila-mariana", label: "Vila Mariana" },
+  { value: "vila-madalena", label: "Vila Madalena" },
+  { value: "bela-vista", label: "Bela Vista" },
+  { value: "se", label: "Sé" },
+  { value: "mooca", label: "Mooca" },
+];
+
 export function TagInputDemo() {
-  const [value, setValue] = useState(["Centro", "Pinheiros"]);
+  const [value, setValue] = useState([
+    "Centro",
+    "Pinheiros",
+    "Lapa",
+    "Santana",
+    "Tatuapé",
+  ]);
   return (
     <TagInput
       id="demo-tags"
@@ -87,7 +102,8 @@ export function TagInputDemo() {
       emptyText="Nenhum bairro adicionado."
       value={value}
       onChange={setValue}
-      max={5}
+      max={8}
+      suggestions={TAG_SUGGESTIONS}
       aria-describedby="demo-tags-hint"
     />
   );
@@ -106,6 +122,22 @@ export function SearchableListDemo() {
   return (
     <SearchableList
       options={NEIGHBORHOOD_OPTIONS}
+      value={value}
+      onChange={setValue}
+      filterPlaceholder="Digite o nome do bairro"
+      filterLabel="Bairro"
+      emptyMessage="Nenhum bairro com esse nome."
+    />
+  );
+}
+
+export function SearchableSelectDemo() {
+  const [value, setValue] = useState<string | null>(null);
+  return (
+    <SearchableSelect
+      id="demo-searchable-select"
+      placeholder="Escolher bairro"
+      options={NEIGHBORHOOD_OPTIONS.map(({ value, label }) => ({ value, label }))}
       value={value}
       onChange={setValue}
       filterPlaceholder="Digite o nome do bairro"

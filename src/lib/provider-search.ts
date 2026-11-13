@@ -15,6 +15,7 @@ import {
   type Coordinates,
 } from "@/lib/geo";
 import { RATING_PRIOR_MEAN, RATING_PRIOR_WEIGHT } from "@/lib/ranking";
+import type { NeighborhoodSuggestion } from "@/lib/provider-validation";
 import {
   SEARCH_RESULT_LIMIT,
   type ProviderSearchItem,
@@ -30,6 +31,14 @@ const ADJUSTED_RATING = sql`(
     + coalesce(p.rating_average, 0) * ${RATED_COUNT})
   / (${RATING_PRIOR_WEIGHT}::double precision + ${RATED_COUNT})
 )`;
+
+function distanceTo(coords: Coordinates) {
+  return sql`2 * ${EARTH_RADIUS_KM}::double precision * asin(least(1, sqrt(
+    power(sin(radians(gp.lat - ${coords.lat}::double precision) / 2), 2) +
+    cos(radians(${coords.lat}::double precision)) * cos(radians(gp.lat)) *
+    power(sin(radians(gp.lng - ${coords.lng}::double precision) / 2), 2)
+  )))`;
+}
 
 function rating(average: number | null, count: number) {
   const rated = average !== null && count > 0;
@@ -89,11 +98,7 @@ export async function findProvidersByDistance(params: {
   const { category, coords, radiusKm, sort } = params;
   const box = boundingBox(coords, radiusKm);
 
-  const distance = sql`2 * ${EARTH_RADIUS_KM}::double precision * asin(least(1, sqrt(
-    power(sin(radians(gp.lat - ${coords.lat}::double precision) / 2), 2) +
-    cos(radians(${coords.lat}::double precision)) * cos(radians(gp.lat)) *
-    power(sin(radians(gp.lng - ${coords.lng}::double precision) / 2), 2)
-  )))`;
+  const distance = distanceTo(coords);
 
   const orderBy =
     sort === "avaliacao"
@@ -238,6 +243,7 @@ export async function listNeighborhoodsOfCity(
       placeId: geoPlace.id,
       neighborhood: geoPlace.neighborhood,
       neighborhoodKey: geoPlace.neighborhoodKey,
+      exact: sql<boolean>`${geoPlace.origin} = 'osm'`,
       providerCount: countDistinct(
         category === null ? providerArea.providerId : providerService.providerId,
       ),
@@ -265,4 +271,64 @@ export async function listNeighborhoodsOfCity(
       Number(b.providerCount > 0) - Number(a.providerCount > 0) ||
       a.neighborhood.localeCompare(b.neighborhood, "pt-BR"),
   );
+}
+
+// null = o lugar não existe ou não tem coordenada exata (não veio do mapa).
+export async function listNeighborhoodsAround(
+  placeId: string,
+  radiusKm: number,
+): Promise<NeighborhoodSuggestion[] | null> {
+  const [reference] = await db
+    .select({
+      id: geoPlace.id,
+      state: geoPlace.state,
+      cityKey: geoPlace.cityKey,
+      origin: geoPlace.origin,
+      lat: geoPlace.lat,
+      lng: geoPlace.lng,
+    })
+    .from(geoPlace)
+    .where(eq(geoPlace.id, placeId))
+    .limit(1);
+  if (
+    !reference ||
+    reference.origin !== "osm" ||
+    reference.lat === null ||
+    reference.lng === null
+  ) {
+    return null;
+  }
+
+  const coords = { lat: reference.lat, lng: reference.lng };
+  const box = boundingBox(coords, radiusKm);
+  const distance = distanceTo(coords);
+
+  const rows = await db.execute<{
+    name: string;
+    key: string;
+    distance_km: number;
+  }>(sql`
+    select name, key, distance_km
+    from (
+      select
+        gp.id,
+        gp.neighborhood as name,
+        gp.neighborhood_key as key,
+        ${distance} as distance_km
+      from geo_place gp
+      where gp.state = ${reference.state}
+        and gp.city_key = ${reference.cityKey}
+        and gp.origin = 'osm'
+        and gp.lat between ${box.minLat}::double precision and ${box.maxLat}::double precision
+        and gp.lng between ${box.minLng}::double precision and ${box.maxLng}::double precision
+    ) nearby
+    where distance_km <= ${radiusKm}::double precision
+    order by (id = ${reference.id}) desc, distance_km asc, name asc
+  `);
+
+  return rows.map((row) => ({
+    name: row.name,
+    key: row.key,
+    distanceKm: Number(row.distance_km),
+  }));
 }

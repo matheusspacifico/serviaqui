@@ -22,6 +22,7 @@ import {
   ChoiceChipsDemo,
   RatingInputDemo,
   SearchableListDemo,
+  SearchableSelectDemo,
   SelectDemo,
   TagInputDemo,
   ToastDemo,
@@ -196,7 +197,7 @@ export default function DesignPage() {
           <Field
             label="TagInput"
             htmlFor="demo-tags"
-            hint="Digite e aperte Enter. Até 5."
+            hint="Digite e aperte Enter; ao digitar, sugere itens da lista. Até 8. Com 5 ou mais aparece &quot;Remover todos&quot;."
           >
             <TagInputDemo />
           </Field>
@@ -279,6 +280,15 @@ export default function DesignPage() {
         </p>
         <div className="max-w-sm rounded-lg border p-3">
           <SearchableListDemo />
+        </div>
+        <div className="max-w-sm">
+          <Field
+            label="SearchableSelect"
+            htmlFor="demo-searchable-select"
+            hint="A mesma lista, aberta por um botão no estilo do Select."
+          >
+            <SearchableSelectDemo />
+          </Field>
         </div>
       </Section>
 

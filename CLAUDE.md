@@ -64,8 +64,8 @@ docker-compose.yml
 - Visual quente: primária terracota, neutros quentes, só tema light (sem `.dark`).
 - Tokens em `src/app/globals.css`. Usar sempre os semânticos (`primary`, `muted-foreground`, `destructive`, `success`, `warning`, `rating`), nunca cores cruas tipo `text-red-600`.
 - Fontes: Geist no corpo (`font-sans`), Bricolage Grotesque nos títulos (`font-heading`, aplicado automático em h1–h3).
-- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`, `choice-chips`, `tag-input`, `provider-card`, `searchable-list`); shadcn fica em `src/components/ui/`.
-- Formulários: `FormField` para um `Input` com rótulo/dica/erro; `Field` (mesmo arquivo) para qualquer outro controle (textarea, select) e, com `as="fieldset"`, para grupos. `ChoiceChips` é a seleção múltipla em etiquetas; `TagInput` é a lista de etiquetas digitadas. `SearchableList` é um campo de filtro com lista de seleção única (cidades, bairros). `ProviderCard` é o card de resultado da busca.
+- Componentes de domínio em `src/components/` (`logo`, `rating-stars`, `site-header`, `auth-shell`, `sign-out-button`, `form-field`, `choice-chips`, `tag-input`, `provider-card`, `searchable-list`, `searchable-select`); shadcn fica em `src/components/ui/`.
+- Formulários: `FormField` para um `Input` com rótulo/dica/erro; `Field` (mesmo arquivo) para qualquer outro controle (textarea, select) e, com `as="fieldset"`, para grupos. `ChoiceChips` é a seleção múltipla em etiquetas; `TagInput` é a lista de etiquetas digitadas. `SearchableList` é um campo de filtro com lista de seleção única (cidades, bairros); `SearchableSelect` é a mesma lista aberta por um botão no estilo do `Select`. `TagInput` aceita `suggestions` (autocompletar) e mostra "Remover todos" a partir de 5 itens. `ProviderCard` é o card de resultado da busca.
 - Vitrine em `/design`: todo componente novo reutilizável entra lá.
 - Toasts com `sonner` (`toast.success(...)`); o `Toaster` já está no layout.
 
@@ -109,6 +109,7 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - Regras e mensagens do perfil ficam só em `src/lib/provider-validation.ts`; o formulário e a server action chamam o mesmo `parseProviderProfile`.
 - O telefone do prestador não aparece em página pública: `getPublicProviderProfile` não seleciona `phone`. O contato entra na Fase 4, por botões que registram o evento.
 - Lugares: `geo_place` tem uma linha por (UF, cidade, bairro); `geo_city` marca as cidades cujos bairros já vieram do mapa. Toda `provider_area` nova é gravada com `place_id`, via `ensurePlaces`. Bairro fora do mapa fica com a coordenada da sede do município (`origin = "provider"`).
+- No cadastro do prestador a cidade é escolhida da lista (`listStateCities`) e os bairros têm autocompletar (`listCityNeighborhoods`); "Sugerir bairros" (`suggestNeighborhoods`) preenche a lista a partir de um bairro de referência e um raio, que não são gravados. Limite de 30 bairros.
 - A cidade do prestador precisa existir em `src/data/municipalities.json` (`findMunicipality`); grava-se o nome oficial. Esse JSON só é importado por código de servidor.
 - O Overpass só é chamado por `ensureCityNeighborhoods` (uma vez por cidade) e só recebe o código IBGE. Na action de salvar perfil ele roda em `after()`, sem atrasar a resposta.
 - A busca é pública e lida por server actions (`searchProviders` em `src/app/buscar/actions.ts`, mais as de `src/lib/geo-actions.ts`): exceção consciente a "mutações via server actions", porque as coordenadas do cliente não podem ir na URL. Elas não chamam `requireSession`, não logam a entrada e não selecionam `phone`.
