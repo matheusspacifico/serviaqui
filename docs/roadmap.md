@@ -33,7 +33,7 @@ Ordem segue as dependências do cronograma.
 
 ## Fase 3 — Busca geolocalizada (pacote 2.1)
 
-- [ ] T3.1 Definir algoritmo: serviço + bairro/raio, distância Haversine — AT10
+- [x] T3.1 Definir algoritmo: serviço + bairro/raio, distância Haversine — AT10
 - [ ] T3.2 Cidades (lista do IBGE), bairros e coordenadas (OpenStreetMap/Overpass) em `geo_place` — AT11
 - [ ] T3.3 Localização do cliente pelo browser, com fallback para cidade e bairro escolhidos — AT11
 - [ ] T3.4 Query de busca por serviço + raio — AT11
