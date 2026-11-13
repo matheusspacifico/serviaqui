@@ -152,7 +152,7 @@ A spec previa o CT-55 em 2 km. Com a sede de São Paulo do arquivo de município
 | CT-96 | Deslogado | Abrir `/dashboard` e entrar | Volta para `/dashboard` | |
 | CT-97 | Deslogado | Abrir `/` | Home com "Criar conta grátis" e a busca rápida | |
 | CT-98 | CT-97 | Escolher um serviço na busca rápida e clicar em "Buscar" | Chega em `/buscar?servico=…` com o serviço já escolhido | |
-| CT-99 | Logado | Abrir `/dashboard` com conta sem perfil e com perfil de prestador | Card "Encontre serviços" nos dois casos; o botão leva a `/buscar` | |
+| CT-99 | Logado | Conferir o cabeçalho com conta sem perfil e com perfil de prestador | "Buscar prestadores" leva a `/buscar` nos dois casos; sem perfil aparece "Oferecer serviços" e, com perfil, "Meu perfil", os dois levando a `/dashboard/prestador`. O `/dashboard` não tem mais os cards "Encontre serviços" e "Ofereça seus serviços" | |
 
 ## Lugares do cadastro
 
@@ -187,3 +187,4 @@ Observações da execução de 13/11/2026:
 - **CT-93:** em 360 px, os três controles da barra na mesma linha, sem rolagem horizontal, painel dentro da tela.
 - **Não executado:** a navegação só por teclado (critério de aceite da T3.6) e a conferência visual em navegador real. Falta uma passada manual para cumprir o roteiro como escrito.
 - **Dados:** os prestadores de demonstração foram **mantidos de propósito** no banco local (não foi rodado `pnpm db:seed:demo --clean`). As contas de teste criadas na execução foram apagadas. Ficaram em `geo_place`/`geo_city` os bairros reais de Itu, Salto e Porto Feliz, carregados do mapa.
+- **Depois desta execução** os cards "Encontre serviços" e "Ofereça seus serviços" saíram do `/dashboard` e viraram links do cabeçalho. O CT-99 foi reescrito e ainda não foi executado na forma nova.

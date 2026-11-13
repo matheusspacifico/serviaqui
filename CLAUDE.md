@@ -115,7 +115,7 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - A busca é pública e lida por server actions (`searchProviders` em `src/app/buscar/actions.ts`, mais as de `src/lib/geo-actions.ts`): exceção consciente a "mutações via server actions", porque as coordenadas do cliente não podem ir na URL. Elas não chamam `requireSession`, não logam a entrada e não selecionam `phone`.
 - As coordenadas do cliente nunca são gravadas, logadas, postas na URL nem enviadas a serviço externo. Por isso `next.config.ts` desliga `logging.serverFunctions` (o `next dev` logaria os argumentos das actions).
 - O browser envia uma server action por vez. `listCityNeighborhoods` espera o mapa por no máximo 15 s e devolve `unavailable`; a carga segue em segundo plano (`after`).
-- `/buscar` é pública: fica fora do `matcher` do proxy. É a página inicial de quem está logado (`/` redireciona para lá) e o destino padrão depois do login (`DEFAULT_REDIRECT`). `/dashboard` é "Minha conta".
+- `/buscar` é pública: fica fora do `matcher` do proxy. É a página inicial de quem está logado (`/` redireciona para lá) e o destino padrão depois do login (`DEFAULT_REDIRECT`). `/dashboard` é "Minha conta". O cabeçalho leva a tudo: "Buscar prestadores", "Oferecer serviços" (ou "Meu perfil", para quem já é prestador; `hasProviderProfile`), "Minha conta" e "Sair"; abaixo de 640 px os três primeiros viram ícones.
 - Estado da busca na URL: `servico` sempre; por distância, `raio` e `ordem`; por bairro, `local` (id de `geo_place`). A URL é atualizada com `history.replaceState`.
 - A localização do cliente só é pedida por clique (pin ou "Distância"); ao abrir, só é usada se a permissão já estiver concedida.
 - Telas que mostram bairros trazem o crédito "© OpenStreetMap".

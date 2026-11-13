@@ -32,6 +32,15 @@ export async function listServiceCategories(): Promise<
     .orderBy(asc(serviceCategory.sortOrder));
 }
 
+export const hasProviderProfile = cache(async (userId: string) => {
+  const [row] = await db
+    .select({ id: providerProfile.id })
+    .from(providerProfile)
+    .where(eq(providerProfile.userId, userId))
+    .limit(1);
+  return row !== undefined;
+});
+
 export async function getOwnProviderProfile(userId: string) {
   const row = await db.query.providerProfile.findFirst({
     where: eq(providerProfile.userId, userId),

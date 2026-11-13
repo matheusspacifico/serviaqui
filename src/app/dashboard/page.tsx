@@ -40,19 +40,6 @@ export default async function DashboardPage() {
             <CardDescription>Logado como {session.user.email}</CardDescription>
           </CardHeader>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Encontre serviços</CardTitle>
-            <CardDescription>
-              Busque prestadores que atendem perto de você.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button nativeButton={false} render={<Link href="/buscar" />}>
-              Buscar prestadores
-            </Button>
-          </CardContent>
-        </Card>
         {profile ? (
           <Card>
             <CardHeader>
@@ -71,9 +58,9 @@ export default async function DashboardPage() {
               </ul>
               {!profile.cityRecognized && (
                 <p className="rounded-lg bg-warning px-4 py-3 text-sm text-warning-foreground">
-                  Não reconhecemos a cidade {profile.city}/{profile.state}.
-                  Você aparece para quem busca seus bairros pelo nome, mas não
-                  em buscas por distância. Confira a grafia no seu perfil.
+                  Não reconhecemos a cidade {profile.city}/{profile.state}. Você
+                  aparece para quem busca seus bairros pelo nome, mas não em
+                  buscas por distância. Confira a grafia no seu perfil.
                 </p>
               )}
               {approximateAreas.length > 0 && (
@@ -100,25 +87,7 @@ export default async function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Ofereça seus serviços</CardTitle>
-              <CardDescription>
-                Crie seu perfil de prestador e apareça para clientes do seu
-                bairro.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button
-                nativeButton={false}
-                render={<Link href="/dashboard/prestador" />}
-              >
-                Criar perfil
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        ) : null}
       </main>
     </>
   );
