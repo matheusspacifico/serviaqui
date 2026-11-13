@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { db } from "@/db";
 import { ensureCityNeighborhoods } from "@/lib/geo-places";
 import { listMunicipalities, nearestMunicipality } from "@/lib/municipalities";
@@ -11,6 +12,11 @@ import {
   type CityNeighborhoodsResult,
   type SearchCity,
 } from "@/lib/search-validation";
+
+// O cliente envia uma server action por vez: esperar o mapa sem limite
+// seguraria a busca e o salvamento do perfil. Passado o limite, a carga
+// continua em segundo plano e a próxima chamada encontra o resultado.
+const MAP_WAIT_MS = 15_000;
 
 export async function listStateCities(state: string): Promise<SearchCity[]> {
   if (typeof state !== "string" || !BRAZILIAN_STATES.includes(state)) return [];
@@ -40,7 +46,16 @@ export async function listCityNeighborhoods(input: {
   }
 
   try {
-    const mapStatus = await ensureCityNeighborhoods(db, { state, cityKey });
+    const loading = ensureCityNeighborhoods(db, { state, cityKey });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const mapStatus = await Promise.race([
+      loading,
+      new Promise<"unavailable">((resolve) => {
+        timer = setTimeout(() => resolve("unavailable"), MAP_WAIT_MS);
+      }),
+    ]);
+    clearTimeout(timer);
+    after(() => loading);
     const neighborhoods = await listNeighborhoodsOfCity(
       state,
       cityKey,

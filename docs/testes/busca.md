@@ -109,7 +109,7 @@ A spec previa o CT-55 em 2 km. Com a sede de São Paulo do arquivo de município
 | CT-68 | CT-66 | Digitar `SE` e depois `sé` | "Sé" aparece nos dois casos | |
 | CT-69 | CT-66 | Digitar `zzz` | "Nenhum bairro com esse nome." | |
 | CT-70 | Sem localização (permissão não decidida) | Escolher "Sé", Eletricista | Carlos Elétrica e depois Luz & Cia (ordem por avaliação); cards com "Sé", sem distância; o navegador não pede permissão; resumo "2 prestadores de eletricista em Sé, São Paulo/SP" | |
-| CT-71 | Localização em Pinheiros, permitida | Trocar a busca para o bairro "Sé", Eletricista | Mesmos prestadores do CT-70; cards com "Sé · ≈ 7,2 km" | |
+| CT-71 | Localização em Pinheiros, permitida | Nos filtros, escolher a cidade São Paulo/SP (em Pinheiros a cidade detectada é Taboão da Serra, cuja sede fica mais perto: é o caso de divisa previsto na spec), o bairro "Sé" e o serviço Eletricista | Mesmos prestadores do CT-70; cards com "Sé · ≈ 7,2 km"; nos filtros, sem "Ordenar por" e sem opções de raio | |
 | CT-72 | Cidade São Paulo/SP, Eletricista | Escolher "Liberdade" | Bairro clicável; "Infelizmente ainda não temos prestadores nessa região." e "Tente outro bairro ou busque por distância." | |
 | CT-73 | Cidade São Paulo/SP | Escolher "Sé" com o serviço Diarista | Mesma mensagem do CT-72 | |
 | CT-74 | CT-66 | Trocar o serviço para Diarista e reabrir a tela de bairro | Só Bela Vista com quantidade (2); os demais apagados | |
