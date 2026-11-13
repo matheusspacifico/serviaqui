@@ -110,7 +110,7 @@ export function parseHourlyRate(
   return { cents };
 }
 
-function collapseSpaces(value: string): string {
+export function collapseSpaces(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 

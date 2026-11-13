@@ -30,6 +30,9 @@ src/
     index.ts                client Drizzle
     schema.ts               schema do banco (único lugar)
     seed.ts                 seed das categorias de serviço (pnpm db:seed)
+    places.ts               liga áreas antigas a geo_place e carrega cidades (pnpm db:places)
+  data/
+    municipalities.json     municípios do Brasil (gerado por scripts/build-municipalities.ts; commitado)
   lib/
     auth.ts                 config do Better Auth (server)
     auth-client.ts          client do Better Auth (browser)
@@ -39,6 +42,11 @@ src/
     redirect.ts             safeRedirectPath (redirectTo seguro)
     provider-validation.ts  campos, limites e validadores do perfil (cliente e servidor)
     provider-queries.ts     leitura de categorias e perfis (só servidor)
+    geo.ts                  Haversine, bounding box, formatDistance (puro)
+    search-validation.ts    limites, tipos e parser da busca (puro)
+    municipalities.ts       consultas à lista de municípios (só servidor)
+    overpass.ts             cliente do Overpass, com fila e 1 consulta/s (só servidor)
+    geo-places.ts           ensurePlaces, ensureCityNeighborhoods (só servidor)
   proxy.ts                  checagem otimista de cookie nas rotas logadas
     utils.ts                helper cn()
 drizzle.config.ts
@@ -71,11 +79,13 @@ pnpm dev          # servidor de desenvolvimento
 pnpm build        # build de produção
 pnpm lint         # ESLint
 pnpm typecheck    # tsc --noEmit
-pnpm test         # testes unitários (node:test via tsx) de src/lib/provider-validation.ts
+pnpm test         # testes unitários (node:test via tsx) dos módulos puros de src/lib
 pnpm db:up        # sobe o Postgres (docker compose up -d)
 pnpm db:down      # derruba o Postgres
 pnpm db:push      # aplica o schema no banco
 pnpm db:seed      # grava as categorias de serviço (idempotente; rodar depois do db:push)
+pnpm db:places    # liga áreas sem place_id a geo_place e carrega as cidades dos perfis (--reload recarrega)
+pnpm data:municipalities  # regenera src/data/municipalities.json
 pnpm db:studio    # Drizzle Studio
 pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 ```
@@ -91,6 +101,9 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - Prestador é qualquer conta com uma linha em `provider_profile` (1:1 com `user`); não há coluna de papel. O dono do perfil é sempre o usuário da sessão, nunca um id vindo do cliente.
 - Regras e mensagens do perfil ficam só em `src/lib/provider-validation.ts`; o formulário e a server action chamam o mesmo `parseProviderProfile`.
 - O telefone do prestador não aparece em página pública: `getPublicProviderProfile` não seleciona `phone`. O contato entra na Fase 4, por botões que registram o evento.
+- Lugares: `geo_place` tem uma linha por (UF, cidade, bairro); `geo_city` marca as cidades cujos bairros já vieram do mapa. Toda `provider_area` nova é gravada com `place_id`, via `ensurePlaces`. Bairro fora do mapa fica com a coordenada da sede do município (`origin = "provider"`).
+- A cidade do prestador precisa existir em `src/data/municipalities.json` (`findMunicipality`); grava-se o nome oficial. Esse JSON só é importado por código de servidor.
+- O Overpass só é chamado por `ensureCityNeighborhoods` (uma vez por cidade) e só recebe o código IBGE. Na action de salvar perfil ele roda em `after()`, sem atrasar a resposta.
 - Erros do Better Auth são exibidos via `authErrorMessage` (`src/lib/auth-errors.ts`), nunca `error.message`.
 - Sem provedor de e-mail ainda: o link de reset de senha é apenas logado no console em `src/lib/auth.ts`.
 - Comentários no código só quando realmente necessário.

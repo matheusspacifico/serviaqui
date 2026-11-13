@@ -29,7 +29,7 @@ export default async function ProviderProfilePage() {
         city: profile.city,
         state: profile.state,
         categories: profile.services.map((service) => service.slug),
-        neighborhoods: profile.areas,
+        neighborhoods: profile.areas.map((area) => area.neighborhood),
         hourlyRate:
           profile.hourlyRateCents === null
             ? ""

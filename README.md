@@ -37,6 +37,8 @@ cp .env.example .env
 | `DATABASE_URL` | Conexão com o Postgres. O valor do exemplo já aponta pro container do Docker. |
 | `BETTER_AUTH_SECRET` | Chave usada pelo Better Auth. Gere uma com `openssl rand -base64 32`. |
 | `BETTER_AUTH_URL` | URL base da aplicação. Em desenvolvimento, `http://localhost:3000`. |
+| `OVERPASS_URL` | Endereço da API Overpass (OpenStreetMap), de onde vêm os bairros de cada cidade. Opcional; o valor do exemplo é o padrão. |
+| `GEO_USER_AGENT` | Identificação do app nas consultas ao Overpass. Troque o contato pelo seu. Vazio, os bairros não são carregados do mapa. |
 
 ## Banco de dados
 
@@ -56,6 +58,12 @@ Gravar as categorias de serviço (pode rodar mais de uma vez; não duplica):
 
 ```bash
 pnpm db:seed
+```
+
+Ligar os bairros dos perfis já cadastrados aos lugares do mapa e carregar os bairros das cidades deles (só é preciso em bancos que já tinham perfis antes da busca; `--reload` força nova carga das cidades):
+
+```bash
+pnpm db:places
 ```
 
 Abrir o Drizzle Studio pra inspecionar os dados:
@@ -85,7 +93,8 @@ pnpm build       # build de produção
 pnpm start       # roda o build
 pnpm lint        # ESLint
 pnpm typecheck   # tsc --noEmit
-pnpm test        # testes unitários das regras do perfil do prestador
+pnpm test        # testes unitários (perfil do prestador, distância, busca, municípios)
+pnpm data:municipalities # regenera src/data/municipalities.json (já vem commitado)
 pnpm db:generate # gera migrations SQL a partir do schema (não usado por enquanto)
 ```
 
@@ -98,6 +107,11 @@ Ainda não há provedor de e-mail configurado: **o link de redefinição de senh
 ## Testando o perfil do prestador
 
 `pnpm test` roda os testes unitários de telefone, valor por hora e bairros. O roteiro manual de cadastro, edição e página pública está em [`docs/testes/perfil-prestador.md`](docs/testes/perfil-prestador.md).
+
+## Dados de localização
+
+- **Municípios:** `src/data/municipalities.json` traz os 5.571 municípios do Brasil (código IBGE, nome, UF e coordenadas da sede). Foi gerado em 13/11/2026 por `pnpm data:municipalities` a partir do repositório [kelvins/municipios-brasileiros](https://github.com/kelvins/municipios-brasileiros) (licença MIT), que deriva de dados públicos do IBGE. O app nunca baixa esse arquivo em tempo de execução.
+- **Bairros:** vêm do [OpenStreetMap](https://www.openstreetmap.org/copyright) pela API Overpass, uma consulta por cidade, na primeira vez que alguém precisa dela. O resultado fica nas tabelas `geo_place` e `geo_city` e não é consultado de novo. O Overpass recebe só o código IBGE do município.
 
 ## Segurança
 
