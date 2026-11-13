@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Logo } from "@/components/logo";
-import { ProviderCard } from "@/components/provider-card";
+import { ProviderCard, ProviderCardSkeleton } from "@/components/provider-card";
 import { Field, FormField } from "@/components/form-field";
 import { RatingStars } from "@/components/rating-stars";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -256,7 +256,8 @@ export default function DesignPage() {
       <Section title="Resultado de busca (ProviderCard)">
         <p className="text-sm text-muted-foreground">
           Com nota e distância; novo com &quot;Valor a combinar&quot;; sem
-          distância (só o bairro).
+          distância (só o bairro); e o esqueleto de carregamento
+          (ProviderCardSkeleton).
         </p>
         <ul className="flex max-w-2xl flex-col gap-3">
           {cardExamples.map((provider) => (
@@ -264,6 +265,9 @@ export default function DesignPage() {
               <ProviderCard provider={provider} highlightSlug="eletricista" />
             </li>
           ))}
+          <li>
+            <ProviderCardSkeleton />
+          </li>
         </ul>
       </Section>
 

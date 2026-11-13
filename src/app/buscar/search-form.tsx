@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { ArrowLeftIcon, ListFilterIcon, MapPinIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  ListFilterIcon,
+  LoaderCircleIcon,
+  MapPinIcon,
+} from "lucide-react";
 import { cn } from "cn";
 import {
   BROWSER_LOCATION_MESSAGES,
@@ -27,7 +32,7 @@ import {
   type SearchRadius,
   type SearchSort,
 } from "@/lib/search-validation";
-import { ProviderCard } from "@/components/provider-card";
+import { ProviderCard, ProviderCardSkeleton } from "@/components/provider-card";
 import { SearchableList } from "@/components/searchable-list";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,7 +95,12 @@ const RADIUS_OPTIONS = SEARCH_RADII_KM.map((radius) => ({
   label: `${radius} km`,
 }));
 const STATE_ITEMS = BRAZILIAN_STATES.map((uf) => ({ value: uf, label: uf }));
-const SEARCH_FAILED = "Não foi possível buscar agora. Tente de novo.";
+const SEARCH_OFFLINE =
+  "Sem conexão com o servidor. Verifique sua internet e tente de novo.";
+const INITIAL_HINT =
+  "Escolha um serviço e use sua localização, ou escolha um bairro nos filtros.";
+const SLOW_MAP_MS = 2000;
+const SKELETON_COUNT = 4;
 
 const sameCity = (a: SearchCity | null, b: SearchCity | null) =>
   a !== null && b !== null && a.state === b.state && a.cityKey === b.cityKey;
@@ -142,6 +152,12 @@ function summaryOf(outcome: Outcome, serviceName: string): string {
   }`;
 }
 
+function emptyMessage(outcome: Outcome, serviceName: string): string {
+  return outcome.origin.kind === "coords"
+    ? `Infelizmente ainda não temos prestadores de ${serviceName} a até ${outcome.origin.radiusKm} km de você.`
+    : "Infelizmente ainda não temos prestadores nessa região.";
+}
+
 function Segments<T extends string | number>({
   legend,
   name,
@@ -157,7 +173,9 @@ function Segments<T extends string | number>({
 }) {
   return (
     <fieldset className="flex min-w-0 flex-col gap-2">
-      <legend className="mb-2 text-sm leading-none font-medium">{legend}</legend>
+      <legend className="mb-2 text-sm leading-none font-medium">
+        {legend}
+      </legend>
       <div className="grid auto-cols-fr grid-flow-col gap-1 rounded-lg bg-muted p-1">
         {options.map((option) => (
           <label
@@ -227,6 +245,7 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
     mapStatus: "loaded",
     loading: false,
   });
+  const [slowMap, setSlowMap] = useState(false);
 
   const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [searchError, setSearchError] = useState<string | null>(null);
@@ -262,7 +281,7 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
       try {
         result = await searchProviders(input);
       } catch {
-        result = { ok: false, fieldErrors: {}, formError: SEARCH_FAILED };
+        result = { ok: false, fieldErrors: {}, formError: SEARCH_OFFLINE };
       }
       if (id !== searchId.current) return;
 
@@ -279,6 +298,14 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
       setOutcome({ category: input.category, ...result });
       updateUrl(input);
     });
+  }
+
+  function retrySearch() {
+    const input = toSearchInput(criteriaRef.current);
+    if (!input) return;
+    lastSearchKey.current = null;
+    setSearchError(null);
+    runSearch(input);
   }
 
   function apply(patch: Partial<Criteria>) {
@@ -363,6 +390,10 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
     if (!city) return;
     const id = ++neighborhoodsId.current;
     setNeighborhoods({ neighborhoods: [], mapStatus: "loaded", loading: true });
+    setSlowMap(false);
+    const slowTimer = setTimeout(() => {
+      if (id === neighborhoodsId.current) setSlowMap(true);
+    }, SLOW_MAP_MS);
     let result: CityNeighborhoodsResult;
     try {
       result = await listCityNeighborhoods({
@@ -373,7 +404,9 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
     } catch {
       result = { neighborhoods: [], mapStatus: "unavailable" };
     }
+    clearTimeout(slowTimer);
     if (id !== neighborhoodsId.current) return;
+    setSlowMap(false);
     setNeighborhoods({ ...result, loading: false });
   }
 
@@ -398,7 +431,9 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
   }
 
   function handleCityChange(value: string) {
-    const city = cities.find((item) => `${item.state}|${item.cityKey}` === value);
+    const city = cities.find(
+      (item) => `${item.state}|${item.cityKey}` === value,
+    );
     if (!city) return;
     if (!sameCity(criteriaRef.current.city, city)) {
       apply({ city, place: null, mode: "bairro" });
@@ -449,6 +484,13 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
       : mode === "bairro" && place
         ? place.neighborhood
         : "Filtros";
+  const isEmpty = outcome !== null && outcome.providers.length === 0;
+  const emptyRadius =
+    outcome?.origin.kind === "coords" ? outcome.origin.radiusKm : null;
+  const nextRadius =
+    emptyRadius === null
+      ? undefined
+      : SEARCH_RADII_KM.find((option) => option > emptyRadius);
   const otherCityNote =
     coords !== null &&
     city !== null &&
@@ -465,7 +507,9 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
             size="icon"
             disabled={locating}
             aria-label={
-              coords ? "Localização ativa. Atualizar." : "Usar minha localização"
+              coords
+                ? "Localização ativa. Atualizar."
+                : "Usar minha localização"
             }
             className={cn(
               coords &&
@@ -473,7 +517,11 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
             )}
             onClick={() => void locate(true)}
           >
-            <MapPinIcon />
+            {locating ? (
+              <LoaderCircleIcon className="animate-spin" />
+            ) : (
+              <MapPinIcon />
+            )}
           </Button>
           <Select
             items={categoryItems}
@@ -539,7 +587,9 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
                       onClick={openCityScreen}
                     >
                       <span className="truncate">
-                        {city ? `${city.city}/${city.state}` : "Escolher cidade"}
+                        {city
+                          ? `${city.city}/${city.state}`
+                          : "Escolher cidade"}
                       </span>
                     </Button>
                   </div>
@@ -686,10 +736,37 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
                   </PopoverTitle>
                   {!neighborhoods.loading &&
                     neighborhoods.mapStatus === "unavailable" && (
-                      <p className="text-sm text-muted-foreground">
+                      <div
+                        role="alert"
+                        className="flex flex-col items-start gap-2 rounded-lg bg-warning px-3 py-2 text-sm text-warning-foreground"
+                      >
                         Não foi possível carregar todos os bairros agora.
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => void loadNeighborhoods()}
+                        >
+                          Tentar de novo
+                        </Button>
+                      </div>
+                    )}
+                  {!neighborhoods.loading &&
+                    neighborhoods.mapStatus === "loaded" &&
+                    neighborhoods.neighborhoods.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        O mapa não tem bairros cadastrados para {city.city}. Use
+                        a busca por distância.
                       </p>
                     )}
+                  <p
+                    aria-live="polite"
+                    className="text-sm text-muted-foreground empty:hidden"
+                  >
+                    {neighborhoods.loading && slowMap
+                      ? `Buscando os bairros de ${city.city} no mapa. Só demora na primeira vez.`
+                      : ""}
+                  </p>
                   <SearchableList
                     options={neighborhoods.neighborhoods.map((item) => ({
                       value: item.placeId,
@@ -713,7 +790,11 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
           </Popover>
         </div>
         {categoryError && (
-          <p id="servico-error" role="alert" className="text-sm text-destructive">
+          <p
+            id="servico-error"
+            role="alert"
+            className="text-sm text-destructive"
+          >
             {categoryError}
           </p>
         )}
@@ -722,6 +803,12 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
             {locationError}
           </p>
         )}
+        <p
+          aria-live="polite"
+          className="text-sm text-muted-foreground empty:hidden"
+        >
+          {locating ? "Obtendo localização..." : ""}
+        </p>
       </div>
 
       <section
@@ -729,17 +816,65 @@ export function SearchForm({ categories, initial }: SearchFormProps) {
         aria-busy={searching}
         className="flex flex-col gap-3"
       >
-        <p aria-live="polite" className="text-sm text-muted-foreground">
+        <p
+          aria-live="polite"
+          className={cn(
+            "text-sm text-muted-foreground",
+            isEmpty && "text-base font-medium text-foreground",
+          )}
+        >
           {outcome
-            ? summaryOf(outcome, serviceName(outcome.category))
+            ? isEmpty
+              ? emptyMessage(outcome, serviceName(outcome.category))
+              : summaryOf(outcome, serviceName(outcome.category))
             : searching
-              ? "Buscando..."
-              : ""}
+              ? "Buscando prestadores..."
+              : searchError
+                ? ""
+                : INITIAL_HINT}
         </p>
         {searchError && (
-          <p role="alert" className="text-sm text-destructive">
-            {searchError}
-          </p>
+          <div role="alert" className="flex flex-col items-start gap-2">
+            <p className="text-sm text-destructive">{searchError}</p>
+            <Button type="button" variant="outline" onClick={retrySearch}>
+              Tentar de novo
+            </Button>
+          </div>
+        )}
+        {!outcome && searching && (
+          <ul className="flex flex-col gap-3">
+            {Array.from({ length: SKELETON_COUNT }, (_, index) => (
+              <li key={index}>
+                <ProviderCardSkeleton />
+              </li>
+            ))}
+          </ul>
+        )}
+        {outcome && isEmpty && (
+          <div
+            className={cn(
+              "flex flex-col items-start gap-3 transition-opacity",
+              searching && "opacity-60",
+            )}
+          >
+            {outcome.origin.kind === "place" ? (
+              <p className="text-sm text-muted-foreground">
+                Tente outro bairro ou busque por distância.
+              </p>
+            ) : nextRadius ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => apply({ radiusKm: nextRadius })}
+              >
+                Buscar em até {nextRadius} km
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Tente outro serviço ou escolha um bairro nos filtros.
+              </p>
+            )}
+          </div>
         )}
         {outcome && outcome.providers.length > 0 && (
           <ul

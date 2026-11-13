@@ -7,6 +7,7 @@ import type { ProviderSearchItem } from "@/lib/search-validation";
 import { RatingStars } from "@/components/rating-stars";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MAX_SERVICES = 2;
 
@@ -79,5 +80,29 @@ export function ProviderCard({ provider, highlightSlug }: ProviderCardProps) {
         </div>
       </div>
     </Link>
+  );
+}
+
+export function ProviderCardSkeleton() {
+  return (
+    <div
+      className="flex items-start gap-3 rounded-xl border bg-card p-4"
+      aria-hidden
+    >
+      <Skeleton className="size-10 shrink-0 rounded-full" />
+      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+        <div className="flex h-6 items-center justify-between gap-3">
+          <Skeleton className="h-4 w-2/5" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+        <div className="flex h-5 items-center">
+          <Skeleton className="h-3.5 w-1/2" />
+        </div>
+        <div className="flex h-5 items-center gap-2">
+          <Skeleton className="h-4 w-24 rounded-full" />
+          <Skeleton className="h-4 w-20 rounded-full" />
+        </div>
+      </div>
+    </div>
   );
 }
