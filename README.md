@@ -60,6 +60,12 @@ Gravar as categorias de serviço (pode rodar mais de uma vez; não duplica):
 pnpm db:seed
 ```
 
+Gravar prestadores fictícios em São Paulo e Campinas, para testar a busca sem depender do mapa (rodar depois do `db:seed`; `--clean` remove o que o script criou):
+
+```bash
+pnpm db:seed:demo
+```
+
 Ligar os bairros dos perfis já cadastrados aos lugares do mapa e carregar os bairros das cidades deles (só é preciso em bancos que já tinham perfis antes da busca; `--reload` força nova carga das cidades):
 
 ```bash

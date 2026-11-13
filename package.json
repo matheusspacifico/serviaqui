@@ -16,6 +16,7 @@
     "db:seed": "tsx --env-file=.env src/db/seed.ts",
     "db:places": "tsx --env-file=.env src/db/places.ts",
     "data:municipalities": "tsx scripts/build-municipalities.ts",
+    "db:seed:demo": "tsx --env-file=.env src/db/seed-demo.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

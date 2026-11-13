@@ -30,6 +30,7 @@ src/
     index.ts                client Drizzle
     schema.ts               schema do banco (único lugar)
     seed.ts                 seed das categorias de serviço (pnpm db:seed)
+    seed-demo.ts            prestadores fictícios em São Paulo e Campinas (pnpm db:seed:demo)
     places.ts               liga áreas antigas a geo_place e carrega cidades (pnpm db:places)
   data/
     municipalities.json     municípios do Brasil (gerado por scripts/build-municipalities.ts; commitado)
@@ -47,6 +48,8 @@ src/
     municipalities.ts       consultas à lista de municípios (só servidor)
     overpass.ts             cliente do Overpass, com fila e 1 consulta/s (só servidor)
     geo-places.ts           ensurePlaces, ensureCityNeighborhoods (só servidor)
+    provider-search.ts      queries da busca e da lista de bairros (só servidor)
+    geo-actions.ts          actions públicas: listStateCities, listCityNeighborhoods, detectCity
     browser-location.ts     navigator.geolocation e Permissions API (só browser)
   proxy.ts                  checagem otimista de cookie nas rotas logadas
     utils.ts                helper cn()
@@ -85,6 +88,7 @@ pnpm db:up        # sobe o Postgres (docker compose up -d)
 pnpm db:down      # derruba o Postgres
 pnpm db:push      # aplica o schema no banco
 pnpm db:seed      # grava as categorias de serviço (idempotente; rodar depois do db:push)
+pnpm db:seed:demo # prestadores de demonstração com coordenadas fixas (--clean remove)
 pnpm db:places    # liga áreas sem place_id a geo_place e carrega as cidades dos perfis (--reload recarrega)
 pnpm data:municipalities  # regenera src/data/municipalities.json
 pnpm db:studio    # Drizzle Studio
@@ -105,6 +109,8 @@ pnpm db:generate  # gera migrations SQL (não usado por enquanto)
 - Lugares: `geo_place` tem uma linha por (UF, cidade, bairro); `geo_city` marca as cidades cujos bairros já vieram do mapa. Toda `provider_area` nova é gravada com `place_id`, via `ensurePlaces`. Bairro fora do mapa fica com a coordenada da sede do município (`origin = "provider"`).
 - A cidade do prestador precisa existir em `src/data/municipalities.json` (`findMunicipality`); grava-se o nome oficial. Esse JSON só é importado por código de servidor.
 - O Overpass só é chamado por `ensureCityNeighborhoods` (uma vez por cidade) e só recebe o código IBGE. Na action de salvar perfil ele roda em `after()`, sem atrasar a resposta.
+- A busca é pública e lida por server actions (`searchProviders` em `src/app/buscar/actions.ts`, mais as de `src/lib/geo-actions.ts`): exceção consciente a "mutações via server actions", porque as coordenadas do cliente não podem ir na URL. Elas não chamam `requireSession`, não logam a entrada e não selecionam `phone`.
+- As coordenadas do cliente nunca são gravadas, logadas, postas na URL nem enviadas a serviço externo.
 - Erros do Better Auth são exibidos via `authErrorMessage` (`src/lib/auth-errors.ts`), nunca `error.message`.
 - Sem provedor de e-mail ainda: o link de reset de senha é apenas logado no console em `src/lib/auth.ts`.
 - Comentários no código só quando realmente necessário.
