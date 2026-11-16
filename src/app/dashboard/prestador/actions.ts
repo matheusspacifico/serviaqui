@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
@@ -8,11 +9,21 @@ import {
   providerService,
   serviceCategory,
 } from "@/db/schema";
+import { ensureCityNeighborhoods, ensurePlaces } from "@/lib/geo-places";
+import { findMunicipality } from "@/lib/municipalities";
+import { listNeighborhoodsAround } from "@/lib/provider-search";
 import {
+  PROVIDER_LIMITS,
+  SUGGESTION_MESSAGES,
   UNKNOWN_CATEGORY_MESSAGE,
+  UNKNOWN_CITY_MESSAGE,
+  neighborhoodKey,
+  parseNeighborhoodSuggestionInput,
   parseProviderProfile,
+  type NeighborhoodSuggestionInput,
   type ProviderProfileInput,
   type SaveProviderProfileResult,
+  type SuggestNeighborhoodsResult,
 } from "@/lib/provider-validation";
 import { requireSession } from "@/lib/session";
 
@@ -24,8 +35,18 @@ export async function saveProviderProfile(
 
   const parsed = parseProviderProfile(input);
   if (!parsed.ok) return { ok: false, fieldErrors: parsed.fieldErrors };
-  const { categories, neighborhoods, ...profile } = parsed.data;
+  const { categories, neighborhoods, ...typed } = parsed.data;
 
+  const municipality = findMunicipality(typed.state, neighborhoodKey(typed.city));
+  if (!municipality) {
+    return {
+      ok: false,
+      fieldErrors: { city: UNKNOWN_CITY_MESSAGE },
+    };
+  }
+  const profile = { ...typed, city: municipality.name };
+
+  let id: string;
   try {
     const known = await db
       .select({ slug: serviceCategory.slug })
@@ -38,7 +59,7 @@ export async function saveProviderProfile(
       };
     }
 
-    const id = await db.transaction(async (tx) => {
+    id = await db.transaction(async (tx) => {
       const [saved] = await tx
         .insert(providerProfile)
         .values({ userId, ...profile })
@@ -59,24 +80,75 @@ export async function saveProviderProfile(
           categorySlug,
         })),
       );
+      const placeIds = await ensurePlaces(
+        tx,
+        neighborhoods.map(({ name }) => ({
+          state: profile.state,
+          city: profile.city,
+          neighborhood: name,
+        })),
+      );
       await tx.insert(providerArea).values(
-        neighborhoods.map(({ name, key }) => ({
+        neighborhoods.map(({ name, key }, index) => ({
           providerId: saved.id,
           neighborhood: name,
           neighborhoodKey: key,
+          placeId: placeIds[index],
         })),
       );
 
       return saved.id;
     });
-
-    return { ok: true, id };
   } catch (error) {
     console.error("[provider] Falha ao salvar o perfil:", error);
     return {
       ok: false,
       fieldErrors: {},
       formError: "Não foi possível salvar o perfil. Tente de novo.",
+    };
+  }
+
+  after(() =>
+    ensureCityNeighborhoods(db, {
+      state: municipality.state,
+      cityKey: municipality.cityKey,
+    }),
+  );
+
+  return { ok: true, id };
+}
+
+export async function suggestNeighborhoods(
+  input: NeighborhoodSuggestionInput,
+): Promise<SuggestNeighborhoodsResult> {
+  await requireSession("/dashboard/prestador");
+
+  const parsed = parseNeighborhoodSuggestionInput(input);
+  if (!parsed.ok) return { ok: false, fieldErrors: parsed.fieldErrors };
+
+  try {
+    const found = await listNeighborhoodsAround(
+      parsed.data.placeId,
+      parsed.data.radiusKm,
+    );
+    if (!found) {
+      return {
+        ok: false,
+        fieldErrors: { reference: SUGGESTION_MESSAGES.reference },
+      };
+    }
+    return {
+      ok: true,
+      suggestions: found.slice(0, PROVIDER_LIMITS.neighborhoodsMax),
+      totalFound: found.length,
+    };
+  } catch (error) {
+    console.error("[provider] Falha ao sugerir bairros:", error);
+    return {
+      ok: false,
+      fieldErrors: {},
+      formError:
+        "Não foi possível sugerir os bairros agora. Adicione à mão ou tente de novo.",
     };
   }
 }

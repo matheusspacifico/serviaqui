@@ -6,6 +6,7 @@ import {
 } from "@/lib/provider-queries";
 import {
   formatCents,
+  UNKNOWN_CITY_MESSAGE,
   formatPhone,
   type ProviderProfileInput,
 } from "@/lib/provider-validation";
@@ -26,10 +27,10 @@ export default async function ProviderProfilePage() {
         displayName: profile.displayName,
         phone: formatPhone(profile.phone),
         phoneIsWhatsapp: profile.phoneIsWhatsapp,
-        city: profile.city,
+        city: profile.cityRecognized ? profile.city : "",
         state: profile.state,
         categories: profile.services.map((service) => service.slug),
-        neighborhoods: profile.areas,
+        neighborhoods: profile.areas.map((area) => area.neighborhood),
         hourlyRate:
           profile.hourlyRateCents === null
             ? ""
@@ -73,6 +74,11 @@ export default async function ProviderProfilePage() {
           <ProviderProfileForm
             categories={categories}
             initialValues={initialValues}
+            initialFieldErrors={
+              profile && !profile.cityRecognized
+                ? { city: UNKNOWN_CITY_MESSAGE }
+                : undefined
+            }
             isEditing={profile !== null}
           />
         )}

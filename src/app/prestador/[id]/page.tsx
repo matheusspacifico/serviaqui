@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MapPinIcon } from "lucide-react";
 import { getPublicProviderProfile } from "@/lib/provider-queries";
-import { formatHourlyRate } from "@/lib/provider-validation";
+import { formatHourlyRate, initials } from "@/lib/provider-validation";
 import { getSession } from "@/lib/session";
 import { SiteHeader } from "@/components/site-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,15 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 type PageProps = { params: Promise<{ id: string }> };
-
-function initials(name: string): string {
-  const words = name.trim().split(/\s+/);
-  const letters =
-    words.length > 1
-      ? words[0][0] + words[words.length - 1][0]
-      : words[0].slice(0, 2);
-  return letters.toUpperCase();
-}
 
 export async function generateMetadata({
   params,

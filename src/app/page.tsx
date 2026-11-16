@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { MapPinIcon, MessageCircleIcon, StarIcon } from "lucide-react";
+import { listServiceCategories } from "@/lib/provider-queries";
+import { getSession } from "@/lib/session";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 
@@ -21,7 +24,10 @@ const features = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  if (await getSession()) redirect("/buscar");
+  const categories = await listServiceCategories();
+
   return (
     <>
       <SiteHeader />
@@ -38,6 +44,36 @@ export default function Home() {
             Eletricistas, diaristas, encanadores e muito mais. Compare
             avaliações e fale direto com quem vai resolver.
           </p>
+          {categories.length > 0 && (
+            <form
+              action="/buscar"
+              method="get"
+              className="flex w-full max-w-md items-center gap-2"
+            >
+              <label htmlFor="servico" className="sr-only">
+                Serviço
+              </label>
+              <select
+                id="servico"
+                name="servico"
+                required
+                defaultValue=""
+                className="h-9 min-w-0 flex-1 rounded-lg border border-input bg-background px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                <option value="" disabled>
+                  Qual serviço você procura?
+                </option>
+                {categories.map(({ slug, name }) => (
+                  <option key={slug} value={slug}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <Button type="submit" size="lg">
+                Buscar
+              </Button>
+            </form>
+          )}
           <div className="flex flex-wrap gap-3">
             <Button
               size="lg"

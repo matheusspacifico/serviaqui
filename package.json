@@ -8,12 +8,16 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/lib/provider-validation.test.ts",
+    "test": "tsx --test src/lib/provider-validation.test.ts src/lib/geo.test.ts src/lib/search-validation.test.ts src/lib/municipalities.test.ts src/lib/ranking.test.ts",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx --env-file=.env src/db/seed.ts",
+    "db:places": "tsx --env-file=.env src/db/places.ts",
+    "data:municipalities": "tsx scripts/build-municipalities.ts",
+    "data:city": "tsx --env-file=.env scripts/export-city.ts",
+    "db:seed:demo": "tsx --env-file=.env src/db/seed-demo.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

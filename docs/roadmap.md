@@ -33,14 +33,15 @@ Ordem segue as dependências do cronograma.
 
 ## Fase 3 — Busca geolocalizada (pacote 2.1)
 
-- [ ] T3.1 Definir algoritmo: serviço + bairro/raio, distância Haversine — AT10
-- [ ] T3.2 Lat/lng nos bairros/perfil e provedor de geocoding (ex.: Nominatim) — AT11
-- [ ] T3.3 Localização do cliente pelo browser, com fallback para bairro digitado — AT11
-- [ ] T3.4 Query de busca por serviço + raio — AT11
-- [ ] T3.5 Ordenação por avaliação e distância — AT12
-- [ ] T3.6 Tela `/buscar` com filtros e cards de resultado — AT13
-- [ ] T3.7 Estados vazio, carregando e erro — AT13
-- [ ] T3.8 Cenários de teste de bairro/raio — AT14
+- [x] T3.1 Definir algoritmo: serviço + bairro/raio, distância Haversine — AT10
+- [x] T3.2 Cidades (lista do IBGE), bairros e coordenadas (OpenStreetMap/Overpass) em `geo_place` — AT11
+- [x] T3.3 Localização do cliente pelo browser, com fallback para cidade e bairro escolhidos — AT11
+- [x] T3.4 Query de busca por serviço + raio — AT11
+- [x] T3.5 Ordenação por avaliação e distância — AT12
+- [x] T3.6 Tela `/buscar` com filtros e cards de resultado — AT13
+- [x] T3.7 Estados vazio, carregando e erro — AT13
+- [x] T3.8 Cenários de teste de bairro/raio — AT14
+- [x] T3.9 Cadastro do prestador: cidade pela lista oficial, autocompletar de bairros e sugestão por bairro de referência + raio; limite de 30 bairros — AT02/AT11
 
 ## Fase 4 — Contato direto (pacote 2.2)
 
