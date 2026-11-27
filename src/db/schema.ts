@@ -114,6 +114,28 @@ export const providerProfile = pgTable("provider_profile", {
     .notNull(),
 });
 
+export const contactEvent = pgTable(
+  "contact_event",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    providerId: text("provider_id")
+      .notNull()
+      .references(() => providerProfile.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    channel: text("channel", { enum: ["whatsapp", "phone"] }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("contact_event_provider_created_idx").on(
+      table.providerId,
+      table.createdAt,
+    ),
+    index("contact_event_user_idx").on(table.userId),
+  ],
+);
+
 export const serviceCategory = pgTable("service_category", {
   slug: text("slug").primaryKey(),
   name: text("name").notNull().unique(),
@@ -213,6 +235,7 @@ export const userRelations = relations(user, ({ one, many }) => ({
   sessions: many(session),
   accounts: many(account),
   providerProfile: one(providerProfile),
+  contactEvents: many(contactEvent),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -238,8 +261,20 @@ export const providerProfileRelations = relations(
     }),
     services: many(providerService),
     areas: many(providerArea),
+    contactEvents: many(contactEvent),
   }),
 );
+
+export const contactEventRelations = relations(contactEvent, ({ one }) => ({
+  provider: one(providerProfile, {
+    fields: [contactEvent.providerId],
+    references: [providerProfile.id],
+  }),
+  user: one(user, {
+    fields: [contactEvent.userId],
+    references: [user.id],
+  }),
+}));
 
 export const serviceCategoryRelations = relations(
   serviceCategory,
