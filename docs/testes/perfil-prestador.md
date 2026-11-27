@@ -52,12 +52,23 @@ Se os e-mails já existirem de uma execução anterior, apagar os usuários no D
 
 | ID | Pré-condição | Passos | Resultado esperado | OK / Falhou |
 |---|---|---|---|---|
-| CT-41 | CT-37 feito; janela anônima deslogada | Abrir `/prestador/{id de A}` | Nome, "São Paulo/SP", "Novo no ServiAqui", serviços na ordem do seed (Pintor antes de Babá), valor, descrição, bairros em ordem alfabética e o card "Contato por WhatsApp e telefone em breve."; sem botão "Editar perfil"; título da aba "Paula Prestadora — Pintor em São Paulo/SP \| ServiAqui" | |
-| CT-42 | CT-41 | "Exibir código-fonte" e respostas da aba Network: procurar `11912345678`, `91234` e `5678` | O telefone não aparece | |
+| CT-41 | CT-37 feito; janela anônima deslogada | Abrir `/prestador/{id de A}` | Nome, "São Paulo/SP", "Novo no ServiAqui", serviços na ordem do seed (Pintor antes de Babá), valor, descrição, bairros em ordem alfabética e botão "Chamar no WhatsApp"; sem botão "Editar perfil"; título da aba "Paula Prestadora — Pintor em São Paulo/SP \| ServiAqui" | |
+| CT-42 | CT-41; ainda não clicar no WhatsApp | "Exibir código-fonte" e respostas iniciais da aba Network: procurar `11912345678`, `91234` e `5678` | O telefone não aparece antes do clique no contato | |
 | CT-43 | CT-41 | Conferir a seção "Sobre" | `<b>teste</b>` aparece literal (sem negrito), com a quebra de linha | |
 | CT-44 | — | Abrir `/prestador/nao-existe` | "Prestador não encontrado" e botão "Voltar para o início"; status 404 na aba Network | |
 | CT-45 | Logado com A | No dashboard, clicar em **Ver perfil público**; depois abrir a mesma URL logado com B | Abre `/prestador/{id de A}`; com A aparece "Editar perfil"; com B, não | |
 | CT-46 | Perfil de B criado; anotar o `id` | No Studio, apagar o `user` de B e abrir `/prestador/{id de B}` | "Prestador não encontrado", status 404; nenhuma linha de B em `provider_service` e `provider_area` | |
+
+## Contato pelo WhatsApp
+
+Pré-requisito: depois de atualizar `src/db/schema.ts`, rodar `pnpm db:push`. Para os casos com registro de eventos, usar Drizzle Studio para conferir `contact_event`.
+
+| ID | Pré-condição | Passos | Resultado esperado | OK / Falhou |
+|---|---|---|---|---|
+| CT-117 | CT-37; banco atualizado; deslogado | Abrir o perfil público de A, conferir que a resposta inicial não contém o telefone e clicar em **Chamar no WhatsApp** | Abre o WhatsApp com o número de A e a mensagem "Olá! Vi seu perfil no ServiAqui e gostaria de saber mais sobre seus serviços."; `contact_event` tem uma linha com o perfil de A, `channel = 'whatsapp'` e `user_id` nulo | OK |
+| CT-118 | CT-117; logado com B | Abrir o perfil público de A e clicar em **Chamar no WhatsApp** | O WhatsApp abre com o mesmo número e mensagem; o evento gravado tem `user_id` de B | |
+| CT-119 | Perfil de B criado no CT-39 (`phone_is_whatsapp = false`) | Abrir o perfil público de B | Não aparece botão de WhatsApp; aparece a mensagem de indisponibilidade | |
+| CT-120 | Banco atualizado; perfil de A existente | Chamar `beginWhatsAppContact` com um id inexistente e depois com um perfil sem WhatsApp habilitado | A action não devolve URL e não grava evento | |
 
 ## Cidades e bairros do mapa
 
@@ -84,6 +95,7 @@ A cidade é escolhida da lista oficial de municípios e os bairros vêm do mapa 
 |---|---|---|---|---|
 | 12/11/2026 | Claude Code, com script Playwright (execução automatizada, não manual) | `51370d7` | Chromium 155.0.8059.12 (headless), `pnpm dev` | CT-25 a CT-46: OK |
 | 13/11/2026 | Claude Code, com scripts Playwright (execução automatizada, não manual) | `fb4d298` | Chromium headless (Playwright 1.65), `pnpm dev` | CT-105 a CT-116: OK. CT-25 a CT-46 **não** foram refeitos por inteiro depois das mudanças da Fase 3 |
+| 27/11/2026 | Copilot SDK, navegador integrado (execução automatizada) | Sem commit (alterações locais) | Chromium integrado, `pnpm dev` | CT-117: OK; CT-118 a CT-120 pendentes |
 | | | | | |
 
 Observações da execução de 12/11/2026:

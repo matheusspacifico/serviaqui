@@ -45,10 +45,10 @@ Ordem segue as dependências do cronograma.
 
 ## Fase 4 — Contato direto (pacote 2.2)
 
-- [ ] T4.1 Botão WhatsApp (`wa.me` com mensagem pronta) — AT15
+- [x] T4.1 Botão WhatsApp (`wa.me` com mensagem pronta) — AT15
 - [ ] T4.2 Botão ligar (`tel:`) — AT16
-- [ ] T4.3 Registrar evento de contato (base para liberar avaliação) — AT15/AT18
-- [ ] T4.4 Teste do fluxo de contato — AT17
+- [x] T4.3 Registrar evento de contato (base para liberar avaliação) — AT15/AT18
+- [x] T4.4 Teste do fluxo de contato — AT17
 
 ## Fase 5 — Avaliação (pacote 3.1)
 

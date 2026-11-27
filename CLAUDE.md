@@ -1,7 +1,7 @@
 # ServiAqui
 
 Marketplace de prestadores de serviço (projeto de faculdade).
-Estado atual: stack, autenticação, design system, perfil do prestador (cadastro/edição em `/dashboard/prestador`, página pública em `/prestador/[id]`) e busca geolocalizada em `/buscar` (por distância ou por bairro). Contato e avaliação ainda não existem.
+Estado atual: stack, autenticação, design system, perfil do prestador (cadastro/edição em `/dashboard/prestador`, página pública em `/prestador/[id]`), busca geolocalizada em `/buscar` (por distância ou por bairro) e contato pelo WhatsApp com registro do evento. Ligação e avaliação ainda não existem.
 
 ## Stack
 
