@@ -3,16 +3,19 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { contactEvent, providerProfile } from "@/db/schema";
-import { buildWhatsAppUrl } from "@/lib/contact";
+import { buildPhoneUrl, buildWhatsAppUrl } from "@/lib/contact";
 import { getSession } from "@/lib/session";
 
-export type WhatsAppContactResult =
+type ContactChannel = "whatsapp" | "phone";
+
+export type ContactResult =
   | { ok: true; url: string }
   | { ok: false; message: string };
 
-export async function beginWhatsAppContact(
+async function beginContact(
   providerId: string,
-): Promise<WhatsAppContactResult> {
+  channel: ContactChannel,
+): Promise<ContactResult> {
   if (
     typeof providerId !== "string" ||
     providerId.length === 0 ||
@@ -34,18 +37,21 @@ export async function beginWhatsAppContact(
     if (!profile) {
       return { ok: false, message: "Este perfil não está disponível." };
     }
-    if (!profile.phoneIsWhatsapp) {
+    if (channel === "whatsapp" && !profile.phoneIsWhatsapp) {
       return {
         ok: false,
         message: "Este prestador não recebe contatos pelo WhatsApp.",
       };
     }
 
-    const url = buildWhatsAppUrl(profile.phone);
+    const url =
+      channel === "whatsapp"
+        ? buildWhatsAppUrl(profile.phone)
+        : buildPhoneUrl(profile.phone);
     if (!url) {
       return {
         ok: false,
-        message: "O telefone deste prestador está inválido para WhatsApp.",
+        message: "O telefone deste prestador está inválido para contato.",
       };
     }
 
@@ -53,7 +59,7 @@ export async function beginWhatsAppContact(
     await db.insert(contactEvent).values({
       providerId,
       userId: session?.user.id ?? null,
-      channel: "whatsapp",
+      channel,
     });
 
     return { ok: true, url };
@@ -64,4 +70,16 @@ export async function beginWhatsAppContact(
       message: "Não foi possível iniciar o contato agora. Tente novamente.",
     };
   }
+}
+
+export async function beginWhatsAppContact(
+  providerId: string,
+): Promise<ContactResult> {
+  return beginContact(providerId, "whatsapp");
+}
+
+export async function beginPhoneContact(
+  providerId: string,
+): Promise<ContactResult> {
+  return beginContact(providerId, "phone");
 }

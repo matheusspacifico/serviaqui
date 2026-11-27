@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { buildWhatsAppUrl } from "./contact";
+import { buildPhoneUrl, buildWhatsAppUrl } from "./contact";
 
 describe("buildWhatsAppUrl", () => {
   it("cria link internacional com mensagem pronta e número formatado", () => {
@@ -24,5 +24,19 @@ describe("buildWhatsAppUrl", () => {
 
   it("não cria link para telefone inválido", () => {
     assert.equal(buildWhatsAppUrl("1234"), null);
+  });
+});
+
+describe("buildPhoneUrl", () => {
+  it("cria link tel internacional para telefone formatado", () => {
+    assert.equal(buildPhoneUrl("(11) 91234-5678"), "tel:+5511912345678");
+  });
+
+  it("aceita telefone fixo e número com código do Brasil", () => {
+    assert.equal(buildPhoneUrl("+55 11 3123-4567"), "tel:+551131234567");
+  });
+
+  it("não cria link para telefone inválido", () => {
+    assert.equal(buildPhoneUrl("1234"), null);
   });
 });

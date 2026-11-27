@@ -67,8 +67,9 @@ Pré-requisito: depois de atualizar `src/db/schema.ts`, rodar `pnpm db:push`. Pa
 |---|---|---|---|---|
 | CT-117 | CT-37; banco atualizado; deslogado | Abrir o perfil público de A, conferir que a resposta inicial não contém o telefone e clicar em **Chamar no WhatsApp** | Abre o WhatsApp com o número de A e a mensagem "Olá! Vi seu perfil no ServiAqui e gostaria de saber mais sobre seus serviços."; `contact_event` tem uma linha com o perfil de A, `channel = 'whatsapp'` e `user_id` nulo | OK |
 | CT-118 | CT-117; logado com B | Abrir o perfil público de A e clicar em **Chamar no WhatsApp** | O WhatsApp abre com o mesmo número e mensagem; o evento gravado tem `user_id` de B | |
-| CT-119 | Perfil de B criado no CT-39 (`phone_is_whatsapp = false`) | Abrir o perfil público de B | Não aparece botão de WhatsApp; aparece a mensagem de indisponibilidade | |
+| CT-119 | Perfil de B criado no CT-39 (`phone_is_whatsapp = false`) | Abrir o perfil público de B | Não aparece botão de WhatsApp; aparece a mensagem de indisponibilidade e o botão **Ligar** | |
 | CT-120 | Banco atualizado; perfil de A existente | Chamar `beginWhatsAppContact` com um id inexistente e depois com um perfil sem WhatsApp habilitado | A action não devolve URL e não grava evento | |
+| CT-121 | CT-37; banco atualizado; deslogado | Abrir o perfil público de A e clicar em **Ligar** | O navegador invoca `tel:` com o número de A; em dispositivo com app de telefone, oferece abrir a discagem. `contact_event` tem uma linha com o perfil de A, `channel = 'phone'` e `user_id` nulo | OK* |
 
 ## Cidades e bairros do mapa
 
@@ -95,8 +96,10 @@ A cidade é escolhida da lista oficial de municípios e os bairros vêm do mapa 
 |---|---|---|---|---|
 | 12/11/2026 | Claude Code, com script Playwright (execução automatizada, não manual) | `51370d7` | Chromium 155.0.8059.12 (headless), `pnpm dev` | CT-25 a CT-46: OK |
 | 13/11/2026 | Claude Code, com scripts Playwright (execução automatizada, não manual) | `fb4d298` | Chromium headless (Playwright 1.65), `pnpm dev` | CT-105 a CT-116: OK. CT-25 a CT-46 **não** foram refeitos por inteiro depois das mudanças da Fase 3 |
-| 27/11/2026 | Copilot SDK, navegador integrado (execução automatizada) | Sem commit (alterações locais) | Chromium integrado, `pnpm dev` | CT-117: OK; CT-118 a CT-120 pendentes |
+| 27/11/2026 | Copilot SDK, navegador integrado (execução automatizada) | `c2202c6` + alterações locais | Chromium integrado, `pnpm dev` | CT-117 e CT-121: OK; CT-118 a CT-120 pendentes. CT-121 confirmou URI `tel:` e evento no banco; o navegador integrado não tem handler de chamadas |
 | | | | | |
+
+`*` CT-121 confirma a URI e o registro do evento; a abertura de um app de chamadas precisa ser conferida em um dispositivo com esse handler.
 
 Observações da execução de 12/11/2026:
 
