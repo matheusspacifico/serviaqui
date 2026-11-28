@@ -6,6 +6,7 @@ import { getPublicProviderProfile } from "@/lib/provider-queries";
 import { formatHourlyRate, initials } from "@/lib/provider-validation";
 import { getSession } from "@/lib/session";
 import { SiteHeader } from "@/components/site-header";
+import { ProviderContact } from "@/components/provider-contact";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -127,9 +128,10 @@ export default async function PublicProviderPage({ params }: PageProps) {
             <Card>
               <CardContent className="flex flex-col gap-2">
                 <h2 className="text-xl font-semibold">Contato</h2>
-                <p className="text-muted-foreground">
-                  Contato por WhatsApp e telefone em breve.
-                </p>
+                <ProviderContact
+                  providerId={profile.id}
+                  phoneIsWhatsapp={profile.phoneIsWhatsapp}
+                />
               </CardContent>
             </Card>
           </aside>

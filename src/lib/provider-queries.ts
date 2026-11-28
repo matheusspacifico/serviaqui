@@ -101,6 +101,7 @@ export const getPublicProviderProfile = cache(async (id: string) => {
       id: true,
       userId: true,
       displayName: true,
+      phoneIsWhatsapp: true,
       city: true,
       state: true,
       hourlyRateCents: true,
